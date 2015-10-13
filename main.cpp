@@ -3,9 +3,14 @@
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
-    MainWindow w;
-    w.show();
-
-    return a.exec();
+    StereoCalibrate cc;
+    cc.findAndDrawChessBoardCorners();
+    cc.CalibrateStereoCamera();
+    //cc.initUndistort();
+    //cc.rectifyCamera();
+    StereoScopicImage ssi;
+    ssi.rectifyCamera();
+    ssi.disparityMap();
+    ssi.convertTo3D();
+    return 0;
 }
