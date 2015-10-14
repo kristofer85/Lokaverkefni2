@@ -16,12 +16,14 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     dataholder.cpp \
     stereocalibrate.cpp \
-    stereoscopicimage.cpp
+    stereoscopicimage.cpp \
+    reprojectimageto3d.cpp
 
 HEADERS  += mainwindow.h \
     dataholder.h \
     stereocalibrate.h \
-    stereoscopicimage.h
+    stereoscopicimage.h \
+    reprojectimageto3d.h
 
 FORMS    += mainwindow.ui
 
