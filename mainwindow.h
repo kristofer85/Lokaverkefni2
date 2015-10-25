@@ -15,7 +15,7 @@
 #include <QMainWindow>
 #include<QFileDialog>
 #include<QtCore>
-using namespace cv;
+//using namespace cv;
 namespace Ui {
 class MainWindow;
 }
@@ -27,10 +27,10 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    Mat orginalL;
+    cv::Mat orginalL;
 
 private slots:
-    QImage matToQImage(Mat mat);
+    QImage matToQImage(cv::Mat mat);
     void on_btnLeft_clicked();
 
 private:

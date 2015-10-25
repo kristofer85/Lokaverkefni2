@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+using namespace cv;
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -31,7 +31,7 @@ void MainWindow::on_btnLeft_clicked()
 
 
 
-    orginalL = imread(strFileName.toStdString());        // open image
+    orginalL = cv::imread(strFileName.toStdString());        // open image
 
      QImage QorginalL = matToQImage(orginalL);         // convert original and Canny images to QImage
      ui->picL->setPixmap(QPixmap::fromImage(QorginalL));   // show original and Canny images on labels
