@@ -5,45 +5,8 @@ using namespace boost;
 using namespace pcl;
 using namespace pcl::visualization;
 
-Convert::Convert(Mat image, Mat disp)
+Convert::Convert()
 {
-    Mat Q;
-    //our Q matrix untill sterio calibration is done a test Q matrix will be used
-/*
-    DataHolder dataHolder;
-    dataHolder.fs1.open("stereoCalibration.yml", FileStorage::READ);
-    dataHolder.fs1["Q"] >> Q;
-*/
-
-    string file = "C:/Users/Notandi/Documents/QtProjects/OpenCVMatToPCL/Q.xml";
-    //Load Matrix Q
-    FileStorage fs(file, cv::FileStorage::READ);
-
-    fs["Q"] >> Q;
-
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_cloud_ptr (new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
-
-    point_cloud_ptr = matToCloud(image,disp,Q,point_cloud_ptr);
-
-    pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;
-    sor.setInputCloud (point_cloud_ptr);
-    sor.setMeanK (50);
-    sor.setStddevMulThresh (1.0);
-    sor.filter (*cloud_filtered);
-
-
-
-    //viewer = createVisualizer( point_cloud_ptr );
-    viewer = createVisualizer( cloud_filtered );
-
-    //Main loop
-    while ( !viewer->wasStopped())
-    {
-
-      viewer->spinOnce(100);
-      boost::this_thread::sleep (boost::posix_time::microseconds (100000));
-    }
 }
 
 shared_ptr<PCLVisualizer> Convert::createVisualizer (PointCloud<PointXYZRGB>::ConstPtr cloud)
@@ -52,7 +15,7 @@ shared_ptr<PCLVisualizer> Convert::createVisualizer (PointCloud<PointXYZRGB>::Co
   viewer->setBackgroundColor (0, 0, 0);
   PointCloudColorHandlerRGBField<PointXYZRGB> rgb(cloud);
   viewer->addPointCloud<PointXYZRGB> (cloud, rgb, "reconstruction");
-  //viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "reconstruction");
+  viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "reconstruction");
   viewer->addCoordinateSystem ( 1.0 );
   viewer->initCameraParameters ();
   return (viewer);
@@ -105,6 +68,48 @@ PointCloud<PointXYZRGB>::Ptr Convert::matToCloud(Mat rgb,Mat disp,Mat Q,PointClo
     Cloud->width = (int) Cloud->points.size();
     Cloud->height = 1;
     return Cloud;
+}
+
+
+
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr Convert::SOR_filter(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+{
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr filter (new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;
+    sor.setInputCloud (cloud);
+    sor.setMeanK (50);
+    sor.setStddevMulThresh (1.0);
+    sor.filter (*filter);
+    return filter;
+
+}
+
+void Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud)
+{
+
+}
+
+void Convert::pointXYZRGB(cv::Mat rgb,cv::Mat disp,pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+{
+    Mat Q;
+    string file = "Q.xml";
+    //Load Matrix Q
+    FileStorage fs(file, cv::FileStorage::READ);
+
+    fs["Q"] >> Q;
+
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_cloud_ptr (new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
+
+    point_cloud_ptr = matToCloud(rgb,disp,Q,point_cloud_ptr);
+    cloud_filtered = SOR_filter(point_cloud_ptr);
+    viewer = createVisualizer( cloud_filtered );
+    while ( !viewer->wasStopped())
+    {
+
+      viewer->spinOnce(100);
+      boost::this_thread::sleep (boost::posix_time::microseconds (100000));
+    }
 }
 
 
