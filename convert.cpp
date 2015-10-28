@@ -83,7 +83,12 @@ PointCloud<PointXYZRGB>::Ptr Convert::matToCloud(Mat rgb,Mat disp,Mat Q,PointClo
 }
 
 
-
+/*******************************************
+ *  Our sparse outlier removal is based on *
+ *  the computation of the distribution of *
+ *  point to neighbors distances in the    *
+ *  input dataset                          *
+ ******************************************/
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr Convert::SOR_filter(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
 {
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr filter (new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -95,6 +100,12 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr Convert::SOR_filter(pcl::PointCloud<pcl::
     return filter;
 
 }
+/*******************************************
+ *  The method works by maintaining a list *
+ *  of points from which the mesh can be   *
+ *  grown and extending it until all       *
+ *  possible points are  connected.        *
+ *******************************************/
 
 pcl::PolygonMesh Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
 {
@@ -147,27 +158,6 @@ pcl::PolygonMesh Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr clo
 
 }
 
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr Convert::pointXYZRGB(cv::Mat rgb,cv::Mat disp,pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
-{
-    Mat Q;
-    string file = "Q.xml";  // moved files to debug & release folder "relative path"
-    //Load Matrix Q
-    FileStorage fs(file, cv::FileStorage::READ);
 
-    fs["Q"] >> Q;
-
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_cloud_ptr (new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
-
-    point_cloud_ptr = matToCloud(rgb,disp,Q,point_cloud_ptr);
-    cloud_filtered = SOR_filter(point_cloud_ptr);
-
-    // Use for viewing point cloud with pointXYZRGB
-    //viewer = createVisualizer( cloud_filtered );
-
-
-    return cloud_filtered;
-
-}
 
 

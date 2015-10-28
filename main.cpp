@@ -79,20 +79,42 @@ int main(int argc, char *argv[])
     //Convert
     //untill sterio calibration is complete use these test images
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr mainCloud (new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr triangulate_cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::PolygonMesh triangles;
     Mat img_rgb = imread("left.png", CV_LOAD_IMAGE_COLOR);              // moved files to debug & release folder "relative path"
     Mat img_disparity = imread("disp.jpg", CV_LOAD_IMAGE_GRAYSCALE);    // moved files to debug & release folder "relative path"
     Convert utilities;
-    triangulate_cloud = utilities.pointXYZRGB(img_rgb,img_disparity,mainCloud);
-    utilities.viewer = utilities.createVisualizer( triangulate_cloud );
 
 
-    // Use for viewing triangulated point cloud || polymesh
-    //triangles = utilities.triangulate(triangulate_cloud);
-    //utilities.viewer->addPolygonMesh(triangles,"triangulation.vtk");
-    //utilities.viewer = utilities.polyMeshVisualizer(triangulate_cloud,triangles);
-    //viewer->addCoordinateSystem (1.0);
+    // temp //
+    Mat Q;
+    string file = "Q.xml";  // moved files to debug & release folder "relative path"
+    //Load Matrix Q
+    FileStorage fs(file, cv::FileStorage::READ);
+
+    fs["Q"] >> Q;
+    // temp //
+
+    // point cloud from rgb image ,depth image & a empty point cloud of pointXYZRGB
+    mainCloud = utilities.matToCloud(img_rgb,img_disparity,Q,mainCloud);
+    cloud_filtered = utilities.SOR_filter(mainCloud);
+    utilities.viewer = utilities.createVisualizer( cloud_filtered );
+
+
+
+    // adds polygon data from triangulate_cloud &
+    // pointXYZRGB with pointXYZRGBNormal for poly normal infoto triangles
+    // triangles = utilities.triangulate(mainCloud);
+    // utilities.viewer = utilities.polyMeshVisualizer(mainCloud,triangles);
+
+    // polyMesh viewer
+    utilities.viewer->addPolygonMesh(triangles,"triangulation.vtk");
+
+    /******************************************
+     *          Main render loop              *
+     *  Loop untils pcl viewer is turned off  *
+    ******************************************/
     while ( !utilities.viewer->wasStopped())
     {
       utilities.viewer->spinOnce(100);
