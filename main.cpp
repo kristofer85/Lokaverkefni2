@@ -86,10 +86,15 @@ int main(int argc, char *argv[])
     Convert utilities;
     triangulate_cloud = utilities.pointXYZRGB(img_rgb,img_disparity,mainCloud);
     utilities.viewer = utilities.createVisualizer( triangulate_cloud );
-    //utilities.triangulate(mainCloud,triangles);
+
+
+    // Use for viewing triangulated point cloud || polymesh
+    //triangles = utilities.triangulate(triangulate_cloud);
+    //utilities.viewer->addPolygonMesh(triangles,"triangulation.vtk");
+    //utilities.viewer = utilities.polyMeshVisualizer(triangulate_cloud,triangles);
+    //viewer->addCoordinateSystem (1.0);
     while ( !utilities.viewer->wasStopped())
     {
-
       utilities.viewer->spinOnce(100);
       boost::this_thread::sleep (boost::posix_time::microseconds (100000));
     }

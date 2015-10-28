@@ -9,6 +9,7 @@
 //#include "pclwindow.h"
 #include <pcl/common/common_headers.h>
 #include <pcl/io/pcd_io.h>
+#include <pcl/io/vtk_io.h>
 #include <pcl/point_types.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/visualization/pcl_visualizer.h>
@@ -34,7 +35,7 @@ public:
     boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr SOR_filter(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointXYZRGB(cv::Mat rgb,cv::Mat disp,pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
-    void triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,pcl::PolygonMesh triangles);
+    pcl::PolygonMesh triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
 
 //signals:
 
