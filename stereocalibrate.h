@@ -9,6 +9,9 @@
 #include <iostream>
 #include <string>
 #include "dataholder.h"
+#include <limits.h>
+#include "opencv2/hal/intrin.hpp"
+#include <opencv2/stereo.hpp>
 
 //using namespace cv;
 //using namespace std;

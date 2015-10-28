@@ -9,12 +9,25 @@ StereoScopicImage::StereoScopicImage()
 
 void StereoScopicImage::rectifyCamera()
 {
+    /*
     string img1Path = CALIBFOLDER;
     img1Path.append("leftChessbord.png");
     Mat img1 = imread(img1Path,IMREAD_COLOR);
     img1Path = CALIBFOLDER;
     img1Path.append("rightChessbord.png");
     Mat img2 = imread(img1Path,IMREAD_COLOR);
+    */
+    string bleh = CALIBFOLDERFIXED;
+    //string bleh = CALIBFOLDER;
+    bleh.append("calib1_fixed.JPG");
+    //bleh.append("DSC_0025.JPG");
+    Mat fullImg = imread(bleh,IMREAD_COLOR);
+    //split sterio pic into two images
+    Size imSize = fullImg.size();
+
+    Mat img1 = fullImg(Range(0, imSize.height),Range(0, imSize.width/2)).clone();
+
+    Mat img2 = fullImg(Range(0, imSize.height),Range(imSize.width/2, imSize.width)).clone();
     Mat CM1, D1, CM2, D2,R, T, R1, P1, R2, P2;
     Rect roi1, roi2;
     Mat Q;
@@ -124,7 +137,7 @@ void StereoScopicImage::disparityMap(string filename)
         cvtColor(img2, g2, CV_BGR2GRAY);
 
         //int sgbmWinSize = SADWindowSize > 0 ? SADWindowSize : 3;
-        int sgbmWinSize = 9;
+        int sgbmWinSize = 6;
                       sgbm->setBlockSize(sgbmWinSize);
 
                         int cn = img1.channels();
@@ -134,7 +147,7 @@ void StereoScopicImage::disparityMap(string filename)
         sgbm->setUniquenessRatio(1);
         sgbm->setMode(StereoSGBM::MODE_SGBM);
         sgbm->setMinDisparity(-64);
-        sgbm->setNumDisparities(768);
+        sgbm->setNumDisparities(192);
         //sgbm->setP1(600);
         //sgbm->setP2(2400);
         sgbm->setP1(8*cn*sgbmWinSize*sgbmWinSize);
