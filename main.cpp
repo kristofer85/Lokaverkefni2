@@ -20,6 +20,8 @@
 #include <pcl/common/common_headers.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
+#include <pcl/surface/gp3.h>
+#include <pcl/io/vtk_io.h>
 #include <pcl/visualization/pcl_visualizer.h>
 #include <boost/thread/thread.hpp>
 #include <pcl/filters/statistical_outlier_removal.h>
@@ -31,6 +33,8 @@
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/extract_indices.h>
 #include "dataholder.h"
+#include <boost/thread/thread.hpp>
+#include "visualizer.h"
 
 using namespace cv;
 using namespace std;
@@ -67,20 +71,15 @@ int main(int argc, char *argv[])
     //bleh();
 
 
-<<<<<<< HEAD
-    cc.findAndDrawChessBoardCorners("C:/Users/Notandi/Documents/GitHub/Lokaverkefni2/Y.xml");
-    cc.CalibrateStereoCamera();
-    cc.initUndistort();
-=======
-    //cc.findAndDrawChessBoardCorners("X.xml");
+    string g = "Y.xml";
+    //cc.findAndDrawChessBoardCorners(g);
     //cc.CalibrateStereoCamera();
     //cc.initUndistort();
->>>>>>> origin/master
     //cc.rectifyCamera();
     //StereoScopicImage ssi;
     //ssi.rectifyCamera();
     //ssi.disparityMap();
-<<<<<<< HEAD
+
     //ssi.disparityMap("C:/Users/Notandi/Documents/GitHub/Lokaverkefni2/Y.xml");
 /*
     //Convert
@@ -89,53 +88,70 @@ int main(int argc, char *argv[])
     Mat img_disparity = imread("C:/Users/Notandi/Pictures/Screenshots/disp.jpg", CV_LOAD_IMAGE_GRAYSCALE);
     Convert con(img_rgb,img_disparity);
 */
-=======
+
     //ssi.disparityMap("X.xml");
 
     //Convert
-    //untill sterio calibration is complete use these test images
+
+    // declare classes
+    Convert utilities;
+    Visualizer visualizer;
+
+
+    // PCL variables & other temp location*****
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr mainCloud (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr triangulate_cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
+    boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
     pcl::PolygonMesh triangles;
-    Mat img_rgb = imread("left.png", CV_LOAD_IMAGE_COLOR);              // moved files to debug & release folder "relative path"
-    Mat img_disparity = imread("disp.jpg", CV_LOAD_IMAGE_GRAYSCALE);    // moved files to debug & release folder "relative path"
-    Convert utilities;
 
-
-    // temp //
     Mat Q;
     string file = "Q.xml";  // moved files to debug & release folder "relative path"
-    //Load Matrix Q
     FileStorage fs(file, cv::FileStorage::READ);
+    fs["Q"] >> Q;                                           //Load Matrix Q
+    Mat img_rgb = imread("left.png", CV_LOAD_IMAGE_COLOR);              // moved files to debug & release folder "relative path"
+    Mat img_disparity = imread("disp.jpg", CV_LOAD_IMAGE_GRAYSCALE);    // moved files to debug & release folder "relative path"
+    // PCL variables & other temp location*****
 
-    fs["Q"] >> Q;
-    // temp //
 
-    // point cloud from rgb image ,depth image & a empty point cloud of pointXYZRGB
+
+
+
+    /*point cloud 2 xyzrgb, filers,triangulate*
+     *  point cloud from rgb image, depth     *
+     *  image & an empty point cloud of       *
+     *  pointXYZRGB.                          *
+     *  Point cloud filters applied           *
+     *****************************************/
     mainCloud = utilities.matToCloud(img_rgb,img_disparity,Q,mainCloud);
     cloud_filtered = utilities.SOR_filter(mainCloud);
-    utilities.viewer = utilities.createVisualizer( cloud_filtered );
+    triangles = utilities.triangulate(cloud_filtered);
 
 
 
-    // adds polygon data from triangulate_cloud &
-    // pointXYZRGB with pointXYZRGBNormal for poly normal infoto triangles
-    // triangles = utilities.triangulate(mainCloud);
-    // utilities.viewer = utilities.polyMeshVisualizer(mainCloud,triangles);
-
-    // polyMesh viewer
-    utilities.viewer->addPolygonMesh(triangles,"triangulation.vtk");
-
-    /******************************************
-     *          Main render loop              *
-     *  Loop untils pcl viewer is turned off  *
-    ******************************************/
-    while ( !utilities.viewer->wasStopped())
+    if(visualizer.displayPoly == false && visualizer.displayPoints == true)
+        visualizer.viewer = visualizer.displayPointCloudColor(cloud_filtered);      // view point cloud
+    else if(visualizer.displayPoly == true && visualizer.displayPoints == false)
     {
-      utilities.viewer->spinOnce(100);
+        pcl::io::saveVTKFile("triangulation.vtk", triangles);                   // save polygon Mesh to file
+        visualizer.viewer = visualizer.displayPolyMesh(cloud_filtered,triangles); // view polyMesh
+    }
+    else
+    {
+        // view point cloud with objects(used for locating the point cloud
+        visualizer.viewer = visualizer.displayLocatorObject(cloud_filtered);
+    }
+
+
+
+    /***********Main render loop**************
+     *  Loop untils pcl viewer is turned off *
+    ******************************************/
+    while ( !visualizer.viewer->wasStopped())
+    {
+      visualizer.viewer->spinOnce(100);
+      visualizer.viewer->saveScreenshot("screenshot.png");
       boost::this_thread::sleep (boost::posix_time::microseconds (100000));
     }
->>>>>>> origin/master
     return 0;
 }

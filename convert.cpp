@@ -5,35 +5,8 @@ using namespace boost;
 using namespace pcl;
 using namespace pcl::visualization;
 
-Convert::Convert()
-{
-}
+Convert::Convert(){}
 
-shared_ptr<PCLVisualizer> Convert::createVisualizer (PointCloud<PointXYZRGB>::ConstPtr cloud)
-{
-    shared_ptr<PCLVisualizer> viewer (new PCLVisualizer ("3D Viewer"));
-    viewer->setBackgroundColor (0, 0, 0);
-    PointCloudColorHandlerRGBField<PointXYZRGB> rgb(cloud);
-    viewer->addPointCloud<PointXYZRGB> (cloud, rgb, "reconstruction");
-    viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "reconstruction");
-    viewer->addCoordinateSystem ( 1.0 );
-    viewer->initCameraParameters ();
-return (viewer);
-}
-
-shared_ptr<PCLVisualizer> Convert::polyMeshVisualizer (PointCloud<PointXYZRGB>::ConstPtr cloud,pcl::PolygonMesh triangles)
-{
-    shared_ptr<PCLVisualizer> viewer (new PCLVisualizer ("3D Viewer"));
-    viewer->setBackgroundColor (0, 0, 0);
-    //pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(cloud);
-    viewer->addPolygonMesh(triangles,"triangulation.vtk");
-    //viewer->addPointCloud<pcl::PointXYZRGB> (cloud, rgb, "sample cloud");
-    //viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "sample cloud");
-    viewer->addCoordinateSystem ( 1.0 );
-    viewer->initCameraParameters ();
-return (viewer);
-}
-//make a function to convert a cv mat into a point cloud
 PointCloud<PointXYZRGB>::Ptr Convert::matToCloud(Mat rgb,Mat disp,Mat Q,PointCloud<PointXYZRGB>::Ptr Cloud)
 {
     double px, py, pz;
@@ -117,7 +90,7 @@ pcl::PolygonMesh Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr clo
     tree->setInputCloud (cloud);
     n.setInputCloud (cloud);
     n.setSearchMethod (tree);
-    n.setKSearch (50);
+    n.setKSearch (200);
     n.compute (*normals);
 
     // Concatenate the XYZRGB and normal fields*
@@ -152,7 +125,7 @@ pcl::PolygonMesh Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr clo
     std::vector<int> parts = gp3.getPartIDs();
     std::vector<int> states = gp3.getPointStates();
 
-    pcl::io::saveVTKFile("triangulation.vtk", polygon);
+
 
     return polygon;
 
