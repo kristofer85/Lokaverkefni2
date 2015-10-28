@@ -23,8 +23,8 @@ void bleh()
     Mat img1 = fullImg(Range(300, imSize.height-800),Range(650, imSize.width/2)).clone();
 
     Mat img2 = fullImg(Range(300, imSize.height-800),Range(imSize.width/2, imSize.width-650)).clone();
-    namedWindow( "Left Window",WINDOW_NORMAL| WINDOW_KEEPRATIO );
-    namedWindow( "Right Window",WINDOW_NORMAL| WINDOW_KEEPRATIO );
+    namedWindow( "Left Window",WINDOW_NORMAL|WINDOW_KEEPRATIO);
+    namedWindow( "Right Window",WINDOW_NORMAL|WINDOW_KEEPRATIO);
     imshow("Left Window", img1);
     imshow("Right Window", img2);
 
@@ -40,18 +40,18 @@ int main(int argc, char *argv[])
 
     cc.findAndDrawChessBoardCorners("C:/Users/Notandi/Documents/GitHub/Lokaverkefni2/X.xml");
     cc.CalibrateStereoCamera();
-    //cc.initUndistort();
+    cc.initUndistort();
     //cc.rectifyCamera();
-    StereoScopicImage ssi;
-    ssi.rectifyCamera();
+    //StereoScopicImage ssi;
+    //ssi.rectifyCamera();
     //ssi.disparityMap();
-    //ssi.disparityMap("C:/Users/Notandi/Documents/GitHub/Lokaverkefni2/X.xml");
-
+    //ssi.disparityMap("C:/Users/Notandi/Documents/GitHub/Lokaverkefni2/Y.xml");
+/*
     //Convert
     //untill sterio calibration is complete use these test images
     Mat img_rgb = imread("C:/Users/Notandi/Pictures/Screenshots/left.png", CV_LOAD_IMAGE_COLOR);
     Mat img_disparity = imread("C:/Users/Notandi/Pictures/Screenshots/disp.jpg", CV_LOAD_IMAGE_GRAYSCALE);
     Convert con(img_rgb,img_disparity);
-
+*/
     return 0;
 }
