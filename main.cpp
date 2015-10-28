@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
     //bleh();
 
 
-    cc.findAndDrawChessBoardCorners("C:/Users/Notandi/Documents/GitHub/Lokaverkefni2/X.xml");
+    cc.findAndDrawChessBoardCorners("C:/Users/Notandi/Documents/GitHub/Lokaverkefni2/Y.xml");
     cc.CalibrateStereoCamera();
     cc.initUndistort();
     //cc.rectifyCamera();
