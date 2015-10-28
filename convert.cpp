@@ -5,59 +5,34 @@ using namespace boost;
 using namespace pcl;
 using namespace pcl::visualization;
 
-Convert::Convert(Mat image, Mat disp)
+Convert::Convert()
 {
-    Mat Q;
-    //our Q matrix untill sterio calibration is done a test Q matrix will be used
-/*
-    DataHolder dataHolder;
-    dataHolder.fs1.open("stereoCalibration.yml", FileStorage::READ);
-    dataHolder.fs1["Q"] >> Q;
-*/
-
-    string file = "C:/Users/Notandi/Documents/QtProjects/OpenCVMatToPCL/Q.xml";
-    //Load Matrix Q
-    FileStorage fs(file, cv::FileStorage::READ);
-
-    fs["Q"] >> Q;
-
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_cloud_ptr (new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
-
-    point_cloud_ptr = matToCloud(image,disp,Q,point_cloud_ptr);
-
-    pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;
-    sor.setInputCloud (point_cloud_ptr);
-    sor.setMeanK (50);
-    sor.setStddevMulThresh (1.0);
-    sor.filter (*cloud_filtered);
-
-
-
-    //viewer = createVisualizer( point_cloud_ptr );
-    viewer = createVisualizer( cloud_filtered );
-
-    //Main loop
-    while ( !viewer->wasStopped())
-    {
-
-      viewer->spinOnce(100);
-      boost::this_thread::sleep (boost::posix_time::microseconds (100000));
-    }
 }
 
 shared_ptr<PCLVisualizer> Convert::createVisualizer (PointCloud<PointXYZRGB>::ConstPtr cloud)
 {
-  shared_ptr<PCLVisualizer> viewer (new PCLVisualizer ("3D Viewer"));
-  viewer->setBackgroundColor (0, 0, 0);
-  PointCloudColorHandlerRGBField<PointXYZRGB> rgb(cloud);
-  viewer->addPointCloud<PointXYZRGB> (cloud, rgb, "reconstruction");
-  //viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "reconstruction");
-  viewer->addCoordinateSystem ( 1.0 );
-  viewer->initCameraParameters ();
-  return (viewer);
+    shared_ptr<PCLVisualizer> viewer (new PCLVisualizer ("3D Viewer"));
+    viewer->setBackgroundColor (0, 0, 0);
+    PointCloudColorHandlerRGBField<PointXYZRGB> rgb(cloud);
+    viewer->addPointCloud<PointXYZRGB> (cloud, rgb, "reconstruction");
+    viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "reconstruction");
+    viewer->addCoordinateSystem ( 1.0 );
+    viewer->initCameraParameters ();
+return (viewer);
 }
 
+shared_ptr<PCLVisualizer> Convert::polyMeshVisualizer (PointCloud<PointXYZRGB>::ConstPtr cloud,pcl::PolygonMesh triangles)
+{
+    shared_ptr<PCLVisualizer> viewer (new PCLVisualizer ("3D Viewer"));
+    viewer->setBackgroundColor (0, 0, 0);
+    //pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(cloud);
+    viewer->addPolygonMesh(triangles,"triangulation.vtk");
+    //viewer->addPointCloud<pcl::PointXYZRGB> (cloud, rgb, "sample cloud");
+    //viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "sample cloud");
+    viewer->addCoordinateSystem ( 1.0 );
+    viewer->initCameraParameters ();
+return (viewer);
+}
 //make a function to convert a cv mat into a point cloud
 PointCloud<PointXYZRGB>::Ptr Convert::matToCloud(Mat rgb,Mat disp,Mat Q,PointCloud<PointXYZRGB>::Ptr Cloud)
 {
@@ -105,6 +80,94 @@ PointCloud<PointXYZRGB>::Ptr Convert::matToCloud(Mat rgb,Mat disp,Mat Q,PointClo
     Cloud->width = (int) Cloud->points.size();
     Cloud->height = 1;
     return Cloud;
+}
+
+
+
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr Convert::SOR_filter(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+{
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr filter (new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;
+    sor.setInputCloud (cloud);
+    sor.setMeanK (50);
+    sor.setStddevMulThresh (1.0);
+    sor.filter (*filter);
+    return filter;
+
+}
+
+pcl::PolygonMesh Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+{
+    // Normal estimation
+    pcl::PolygonMesh polygon;
+    pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> n;
+    pcl::PointCloud<pcl::Normal>::Ptr normals (new pcl::PointCloud<pcl::Normal>);
+    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
+    tree->setInputCloud (cloud);
+    n.setInputCloud (cloud);
+    n.setSearchMethod (tree);
+    n.setKSearch (50);
+    n.compute (*normals);
+
+    // Concatenate the XYZRGB and normal fields*
+    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud_with_normals (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
+    pcl::concatenateFields (*cloud, *normals, *cloud_with_normals);
+    //* cloud_with_normals = cloud + normals
+
+    // Create search tree*
+    pcl::search::KdTree<pcl::PointXYZRGBNormal>::Ptr tree2 (new pcl::search::KdTree<pcl::PointXYZRGBNormal>);
+    tree2->setInputCloud (cloud_with_normals);
+
+    // Initialize objects
+    pcl::GreedyProjectionTriangulation<pcl::PointXYZRGBNormal> gp3;
+
+    // Set the maximum distance between connected points (maximum edge length)
+    gp3.setSearchRadius (0.025);
+
+    // Set typical values for the parameters
+    gp3.setMu (2.5);
+    gp3.setMaximumNearestNeighbors (200);
+    gp3.setMaximumSurfaceAngle(M_PI/4); // 45 degrees
+    gp3.setMinimumAngle(M_PI/18); // 10 degrees
+    gp3.setMaximumAngle(2*M_PI/3); // 120 degrees
+    gp3.setNormalConsistency(false);
+
+    // Get result
+    gp3.setInputCloud (cloud_with_normals);
+    gp3.setSearchMethod (tree2);
+    gp3.reconstruct (polygon);
+
+    // Additional vertex information
+    std::vector<int> parts = gp3.getPartIDs();
+    std::vector<int> states = gp3.getPointStates();
+
+    pcl::io::saveVTKFile("triangulation.vtk", polygon);
+
+    return polygon;
+
+}
+
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr Convert::pointXYZRGB(cv::Mat rgb,cv::Mat disp,pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+{
+    Mat Q;
+    string file = "Q.xml";  // moved files to debug & release folder "relative path"
+    //Load Matrix Q
+    FileStorage fs(file, cv::FileStorage::READ);
+
+    fs["Q"] >> Q;
+
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_cloud_ptr (new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
+
+    point_cloud_ptr = matToCloud(rgb,disp,Q,point_cloud_ptr);
+    cloud_filtered = SOR_filter(point_cloud_ptr);
+
+    // Use for viewing point cloud with pointXYZRGB
+    //viewer = createVisualizer( cloud_filtered );
+
+
+    return cloud_filtered;
+
 }
 
 

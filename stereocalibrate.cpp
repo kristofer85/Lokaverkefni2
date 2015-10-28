@@ -239,6 +239,7 @@ void StereoCalibrate::CalibrateStereoCamera()
     //img1 = fullImg(Range(0, imSize.height),Range(0, imSize.width/2)).clone();
     Size imageSize = imgSize;
 
+<<<<<<< HEAD
       double apertureWidth = 4.0;
       double apertureHeight = 4.0;
       double fieldOfViewX;
@@ -266,6 +267,35 @@ void StereoCalibrate::CalibrateStereoCamera()
       cout << CM1 << endl;
       cout << CM2 << endl;
 
+=======
+    //double apertureWidth = 4.0;
+    //  double apertureHeight = 4.0;
+    //  double fieldOfViewX;
+    //  double fieldOfViewY;
+    //  double focalLength = 18.0;
+    //  cv::Point2d principalPoint;
+    //  double aspectRatio;
+    //  double fx = (imageSize.width*18.0)/23.6;
+    //  double fy = (imageSize.height*18.0)/15.8;
+    //  CM1.at<double>(0,0) = fx;
+    //  //CM1.at<double>(0,0) = 10.0;
+    //  CM1.at<double>(1,1) = fy;
+    //  //CM1.at<double>(1,1) = 5.0;
+    //  CM1.at<double>(0,2) = imageSize.width/2;
+    //  CM1.at<double>(1,2) = imageSize.height/2;
+    //  CM1.at<double>(2,2) = 1;
+    //
+    //  CM2.at<double>(0,0) = fx;
+    //  //CM1.at<double>(0,0) = 10.0;
+    //  CM2.at<double>(1,1) = fy;
+    //  //CM1.at<double>(1,1) = 5.0;
+    //  CM2.at<double>(0,2) = imageSize.width/2;
+    //  CM2.at<double>(1,2) = imageSize.height/2;
+    //  CM2.at<double>(2,2) = 1;
+    //  cout << CM1 << endl;
+    //  cout << CM2 << endl;
+    //
+>>>>>>> origin/master
       DataHolder dataHolder2;
       dataHolder2.fs1 = FileStorage("cam.yml", FileStorage::WRITE);
       dataHolder2.fs1 << "CM1 before" << CM1;
@@ -277,6 +307,7 @@ void StereoCalibrate::CalibrateStereoCamera()
       dataHolder2.fs1 << "CM2 after" << CM2;
 
     vector<Mat> rvecs,rvecs2, tvecs,tvecs2;
+<<<<<<< HEAD
     calibrateCamera(object_points, imagePoints1,imgSize,CM1, D11,rvecs,tvecs,CV_CALIB_ZERO_TANGENT_DIST |CV_CALIB_USE_INTRINSIC_GUESS);
     calibrateCamera(object_points, imagePoints2,imgSize,CM2, D22,rvecs2,tvecs2,CV_CALIB_ZERO_TANGENT_DIST |CV_CALIB_USE_INTRINSIC_GUESS );
     //calibrateCamera(object_points, imagePoints1,imgSize,CM2, D11,rvecs,tvecs,CV_CALIB_ZERO_TANGENT_DIST |CV_CALIB_USE_INTRINSIC_GUESS);
@@ -284,6 +315,11 @@ void StereoCalibrate::CalibrateStereoCamera()
 
     stereoCalibrate(object_points, imagePoints1, imagePoints2,CM1, D1, CM2, D2, imgSize, R, T, E, F, CV_CALIB_FIX_INTRINSIC,cvTermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS, 100, 1e-5));
     //stereoCalibrate(object_points, imagePoints2, imagePoints1,CM1, D1, CM2, D2, imgSize, R, T, E, F, CV_CALIB_FIX_INTRINSIC,cvTermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS, 100, 1e-5));
+=======
+    //calibrateCamera(object_points, imagePoints1,imgSize,CM1, D11,rvecs,tvecs,CV_CALIB_ZERO_TANGENT_DIST |CV_CALIB_USE_INTRINSIC_GUESS);
+    //calibrateCamera(object_points, imagePoints2,imgSize,CM2, D22,rvecs2,tvecs2,CV_CALIB_ZERO_TANGENT_DIST |CV_CALIB_USE_INTRINSIC_GUESS );
+    //stereoCalibrate(object_points, imagePoints1, imagePoints2,CM1, D1, CM2, D2, imgSize, R, T, E, F, CV_CALIB_FIX_INTRINSIC,cvTermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS, 100, 1e-5));
+>>>>>>> origin/master
 
     //stereoCalibrate(object_points, imagePoints1, imagePoints2,CM1, D1, CM2, D2, img1.size(), R, T, E, F, CV_CALIB_USE_INTRINSIC_GUESS,cvTermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS, 100, 1e-5));
       //stereoCalibrate(object_points, imagePoints1, imagePoints2,CM1, D1, CM2, D2, img1.size(), R, T, E, F,CV_CALIB_SAME_FOCAL_LENGTH | CV_CALIB_ZERO_TANGENT_DIST | CV_CALIB_FIX_ASPECT_RATIO | CV_CALIB_FIX_INTRINSIC ,cvTermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS, 100, 1e-5));
