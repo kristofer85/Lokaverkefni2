@@ -51,6 +51,15 @@ void bleh()
     waitKey(0);
 }
 
+
+/*
+ *
+ *
+ *
+ */
+
+
+
 int main(int argc, char *argv[])
 {
     //StereoCalibrate cc;
@@ -70,10 +79,19 @@ int main(int argc, char *argv[])
     //Convert
     //untill sterio calibration is complete use these test images
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr mainCloud (new pcl::PointCloud<pcl::PointXYZRGB>);
-    Mat img_rgb = imread("left.png", CV_LOAD_IMAGE_COLOR);
-    Mat img_disparity = imread("disp.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr triangulate_cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::PolygonMesh triangles;
+    Mat img_rgb = imread("left.png", CV_LOAD_IMAGE_COLOR);              // moved files to debug & release folder "relative path"
+    Mat img_disparity = imread("disp.jpg", CV_LOAD_IMAGE_GRAYSCALE);    // moved files to debug & release folder "relative path"
     Convert utilities;
-    utilities.pointXYZRGB(img_rgb,img_disparity,mainCloud);
+    triangulate_cloud = utilities.pointXYZRGB(img_rgb,img_disparity,mainCloud);
+    utilities.viewer = utilities.createVisualizer( triangulate_cloud );
+    //utilities.triangulate(mainCloud,triangles);
+    while ( !utilities.viewer->wasStopped())
+    {
 
+      utilities.viewer->spinOnce(100);
+      boost::this_thread::sleep (boost::posix_time::microseconds (100000));
+    }
     return 0;
 }

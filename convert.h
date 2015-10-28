@@ -29,11 +29,12 @@ class Convert
 public:
     Convert();
     boost::shared_ptr<pcl::visualization::PCLVisualizer> createVisualizer (pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud);
+    boost::shared_ptr<pcl::visualization::PCLVisualizer> polyMeshVisualizer (pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud,pcl::PolygonMesh triangles);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr matToCloud(cv::Mat rgb,cv::Mat disp,cv::Mat Q,pcl::PointCloud<pcl::PointXYZRGB>::Ptr Cloud);
     boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr SOR_filter(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
-    void pointXYZRGB(cv::Mat rgb,cv::Mat disp,pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
-    void triangulate(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointXYZRGB(cv::Mat rgb,cv::Mat disp,pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
+    void triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,pcl::PolygonMesh triangles);
 
 //signals:
 
