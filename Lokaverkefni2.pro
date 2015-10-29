@@ -19,8 +19,7 @@ SOURCES += main.cpp\
     stereoscopicimage.cpp \
     convert.cpp \
     pclfilters.cpp \
-    visualizer.cpp \
-    viewport.cpp
+    visualizer.cpp
 
 HEADERS  += mainwindow.h \
     dataholder.h \
@@ -29,8 +28,7 @@ HEADERS  += mainwindow.h \
     defines.h \
     convert.h \
     pclfilters.h \
-    visualizer.h \
-    viewport.h
+    visualizer.h
 
 FORMS    += mainwindow.ui
 

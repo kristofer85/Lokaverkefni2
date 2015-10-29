@@ -82,8 +82,14 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr Convert::SOR_filter(pcl::PointCloud<pcl::
 
 pcl::PolygonMesh Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
 {
+    // Load input file into a PointCloud<T> with an appropriate type
+    pcl::PCLPointCloud2 cloud_blob;
+    pcl::io::loadPCDFile ("triangulate.pcd", cloud_blob);
+    pcl::fromPCLPointCloud2 (cloud_blob, *cloud);
+    //* the data should be available in cloud
+    //pcl::io::savePCDFileASCII ("tri.pcd", *cloud);
     // Normal estimation
-    pcl::PolygonMesh polygon;
+
     pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> n;
     pcl::PointCloud<pcl::Normal>::Ptr normals (new pcl::PointCloud<pcl::Normal>);
     pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
@@ -103,28 +109,28 @@ pcl::PolygonMesh Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr clo
     tree2->setInputCloud (cloud_with_normals);
 
     // Initialize objects
-    pcl::GreedyProjectionTriangulation<pcl::PointXYZRGBNormal> gp3;
-
+    pcl::GreedyProjectionTriangulation<pcl::PointXYZRGBNormal> triangulation;
+    pcl::PolygonMesh polygon;
     // Set the maximum distance between connected points (maximum edge length)
-    gp3.setSearchRadius (0.025);
-
+    triangulation.setSearchRadius (0.025);
+    triangulation.getConsistentVertexOrdering();
     // Set typical values for the parameters
-    gp3.setMu (2.5);
-    gp3.setMaximumNearestNeighbors (200);
-    gp3.setMaximumSurfaceAngle(M_PI/4); // 45 degrees
-    gp3.setMinimumAngle(M_PI/18); // 10 degrees
-    gp3.setMaximumAngle(2*M_PI/3); // 120 degrees
-    gp3.setNormalConsistency(false);
+    triangulation.setMu (2.5);
+    triangulation.setMaximumNearestNeighbors (200);
+    triangulation.setMaximumSurfaceAngle(M_PI/4); // 45 degrees
+    triangulation.setMinimumAngle(M_PI/18); // 10 degrees
+    triangulation.setMaximumAngle(2*M_PI/3); // 120 degrees
+    triangulation.setNormalConsistency(false);
 
     // Get result
-    gp3.setInputCloud (cloud_with_normals);
-    gp3.setSearchMethod (tree2);
-    gp3.reconstruct (polygon);
+    triangulation.setInputCloud (cloud_with_normals);
+    triangulation.setSearchMethod (tree2);
+    triangulation.reconstruct (polygon);
 
     // Additional vertex information
-    std::vector<int> parts = gp3.getPartIDs();
-    std::vector<int> states = gp3.getPointStates();
-
+    //std::vector<int> parts = gp3.getPartIDs();
+    //std::vector<int> states = gp3.getPointStates();
+    pcl::io::saveVTKFile("triangulate.vtk", polygon);
 
 
     return polygon;

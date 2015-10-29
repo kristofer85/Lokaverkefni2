@@ -3,7 +3,7 @@
 Visualizer::Visualizer()
 {
     displayPoly = false;
-    displayPoints = false;
+    displayPoints = true;
 }
 
 /***********Display point cloud***********
@@ -17,20 +17,21 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> Visualizer::displayPointClo
     viewer->addPointCloud<pcl::PointXYZRGB> (cloud, rgb, "reconstruction");
     viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "reconstruction");
     viewer->addCoordinateSystem ( 1.0 );
-    viewer->initCameraParameters ();
+    //viewer->initCameraParameters ();
     return (viewer);
 }
 
 /***********Display polygon mesh**********
  *  Loop untils pcl viewer is turned off *
 ******************************************/
+
 boost::shared_ptr<pcl::visualization::PCLVisualizer> Visualizer::displayPolyMesh (pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud,pcl::PolygonMesh triangles)
 {
     boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer ("3D Viewer"));
-    viewer->setBackgroundColor (1, 1, 1);
+    viewer->setBackgroundColor (0, 0, 0);
     viewer->addPolygonMesh(triangles,"triangulation.vtk");
     viewer->addCoordinateSystem ( 1.0 );
-    viewer->initCameraParameters ();
+    //viewer->initCameraParameters ();
     return (viewer);
 }
 
@@ -66,7 +67,7 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> displayPointCloudColorNorma
 }
 
 /******Compare locations of camera*********
- *  Test visualizer adds small cubes      *
+ *  Test visualizer: adds small spheres   *
  *  with specific transform and rotate.   *
  *  Compare positions from the camera     *
  *  matrix from stereo calibration with   *
@@ -89,14 +90,24 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> Visualizer::displayLocatorO
 
   /*******Add shapes at cloud points*********
   *******************************************/
-  viewer->addLine<pcl::PointXYZRGB> (cloud->points[0],cloud->points[(cloud->size() - 1) + 38.7], "line");
+  //viewer->addLine<pcl::PointXYZRGB> (cloud->points[0],cloud->points[(cloud->size() - 1) + 38.7], "line");
   viewer->addSphere (cloud->points[0], 0.4, 0.7, 0.7, 0.0, "sphere");
-  viewer->addSphere (cloud->points[(cloud->size() - 1) + 38.7], 0.4, 0.7, 0.7, 0.0, "sphere");
+  viewer->addSphere (cloud->points[(cloud->size() - 1)], 0.4, 0.7, 0.7, 0.0, "sphere2");
+
   /*******Add shapes at other locations*********
   *******************************************/
 
   viewer->addCoordinateSystem (1.0,0.0,0.0,12.0);
-  viewer->setCameraPosition(0,0,0,0,1,0,0);
+  //viewer->setCameraParameters();
+  //viewer->setCameraPosition(-1.6, 2.18, 8.6, 0.0, 1.0, 0.0, 0);
+  viewer->resetCamera();
+  //int leftViewport(0);
+  //viewer->createViewPort(0.0, 0.0, 0.5, 1.0, leftViewport);
+  //viewer->setBackgroundColor (0, 0, 0, leftViewport);
+  //
+  //int rightViewport(0);
+  //viewer->createViewPort(0.0, 0.0, 0.5, 1.0, leftViewport);
+  //viewer->setBackgroundColor (1, 1, 1, leftViewport);
   return (viewer);
 }
 

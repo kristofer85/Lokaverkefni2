@@ -1,3 +1,4 @@
+//#include <pcl/pcl_tests.h>
 #include "stereocalibrate.h"
 #include <QApplication>
 #include <opencv/cv.h>
@@ -35,6 +36,7 @@
 #include "dataholder.h"
 #include <boost/thread/thread.hpp>
 #include "visualizer.h"
+
 
 using namespace cv;
 using namespace std;
@@ -96,7 +98,7 @@ int main(int argc, char *argv[])
     // declare classes
     Convert utilities;
     Visualizer visualizer;
-
+    DataHolder dataHolder;
 
     // PCL variables & other temp location*****
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr mainCloud (new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -111,11 +113,8 @@ int main(int argc, char *argv[])
     fs["Q"] >> Q;                                           //Load Matrix Q
     Mat img_rgb = imread("left.png", CV_LOAD_IMAGE_COLOR);              // moved files to debug & release folder "relative path"
     Mat img_disparity = imread("disp.jpg", CV_LOAD_IMAGE_GRAYSCALE);    // moved files to debug & release folder "relative path"
+
     // PCL variables & other temp location*****
-
-
-
-
 
     /*point cloud 2 xyzrgb, filers,triangulate*
      *  point cloud from rgb image, depth     *
@@ -125,7 +124,26 @@ int main(int argc, char *argv[])
      *****************************************/
     mainCloud = utilities.matToCloud(img_rgb,img_disparity,Q,mainCloud);
     cloud_filtered = utilities.SOR_filter(mainCloud);
-    triangles = utilities.triangulate(cloud_filtered);
+    pcl::PCDWriter writer;
+    //writer.write<pcl::PointXYZRGB> ("triangulate.pcd", *cloud_filtered, false);
+    pcl::io::savePCDFileBinaryCompressed ("triangulate.pcd", *cloud_filtered);
+    pcl::io::loadPCDFile("triangulate.pcd", *mainCloud);
+    triangles = utilities.triangulate(mainCloud);
+
+
+    /***********viewport setup******************
+     * default viewport is from left side.     *
+     * The right side can be found by          *
+     * mirroring the left camera over the left *
+     * camera Y-up axis & the left camera      *
+     * view-Z axis with an offset of half the  *
+     * distance in X-axis between the mirrors  *
+     ******************************************/
+     /***viewport is split screen not useful****
+     *******************************************/
+
+
+
 
 
 
@@ -150,7 +168,7 @@ int main(int argc, char *argv[])
     while ( !visualizer.viewer->wasStopped())
     {
       visualizer.viewer->spinOnce(100);
-      visualizer.viewer->saveScreenshot("screenshot.png");
+      //visualizer.viewer->saveScreenshot("screenshot.png");
       boost::this_thread::sleep (boost::posix_time::microseconds (100000));
     }
     return 0;
