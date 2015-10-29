@@ -38,13 +38,6 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include "stereoscopicimage.h"
 #include "convert.h"
-#include <iostream>
-#include <string>
-#include <opencv/cv.h>
-#include <opencv2/core.hpp>
-#include <opencv2/core/core.hpp>
-#include <string>
-#include <iostream>
 //#include "pclwindow.h"
 #include <pcl/common/common_headers.h>
 #include <pcl/io/pcd_io.h>
@@ -60,9 +53,6 @@
 #include <pcl/ModelCoefficients.h>
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/filters/voxel_grid.h>
-#include <pcl/filters/extract_indices.h>
-#include "dataholder.h"
-#include <boost/thread/thread.hpp>
 #include "visualizer.h"
 class Convert
 {

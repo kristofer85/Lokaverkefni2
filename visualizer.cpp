@@ -1,5 +1,6 @@
 #include "visualizer.h"
-
+using namespace pcl;
+using namespace pcl::visualization;
 Visualizer::Visualizer()
 {
     displayPoly = false;
@@ -78,6 +79,7 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> displayPointCloudColorNorma
 *******************************************/
 boost::shared_ptr<pcl::visualization::PCLVisualizer> Visualizer::displayLocatorObject (pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud)
 {
+
   /****Open 3D viewer and add point cloud****
   *******************************************/
   boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer ("3D Viewer"));

@@ -12,10 +12,6 @@
 #include "convert.h"
 #include <iostream>
 #include <string>
-#include <opencv/cv.h>
-#include <opencv2/core.hpp>
-#include <opencv2/core/core.hpp>
-#include <string>
 #include <iostream>
 //#include "pclwindow.h"
 #include <pcl/common/common_headers.h>
@@ -43,7 +39,7 @@ using namespace std;
 void bleh()
 {
     Mat fullImg;
-    string bleh = "C:/Users/kristinn/Pictures/kula_calib_myndir/calibMyndir_fixed/test/calib4_fixed.jpg";
+    string bleh = "C:/Users/notandi/Pictures/kula_calib_myndir2/calibMyndir_fixed/test/calib4_fixed.jpg";
     fullImg = imread(bleh,IMREAD_COLOR);
     Size imSize = fullImg.size();
     Mat img1 = fullImg(Range(300, imSize.height-800),Range(650, imSize.width/2)).clone();
@@ -68,19 +64,33 @@ void bleh()
 
 int main(int argc, char *argv[])
 {
-    //StereoCalibrate cc;
+    StereoCalibrate cc;
     //cc.findAndDrawChessBoardCorners();
     //bleh();
+    //cc.findAndDrawChessBoardCorners("C:/Users/Notandi/Documents/GitHub/Lokaverkefni2/Y.xml");
+    //cc.CalibrateStereoCamera();
+    //cc.initUndistort();
+    Mat blarg = imread("../Lokaverkefni2/myndir/calib4_fixed.jpg",IMREAD_COLOR);
+    namedWindow( "blerg",WINDOW_AUTOSIZE);
+    namedWindow( "blurg",WINDOW_AUTOSIZE);
+    pyrDown(blarg,blarg,Size(blarg.cols/2,blarg.rows/2));
+    Size imSize = blarg.size();
 
+    Mat img1 = blarg(Range(0, imSize.height),Range(0, imSize.width/2)).clone();
+
+    //cc.findAndDrawChessBoardCorners("X.xml");
 
     string g = "Y.xml";
     //cc.findAndDrawChessBoardCorners(g);
+
     //cc.CalibrateStereoCamera();
     //cc.initUndistort();
     //cc.rectifyCamera();
     //StereoScopicImage ssi;
     //ssi.rectifyCamera();
     //ssi.disparityMap();
+
+
 
     //ssi.disparityMap("C:/Users/Notandi/Documents/GitHub/Lokaverkefni2/Y.xml");
 /*
@@ -91,8 +101,12 @@ int main(int argc, char *argv[])
     Convert con(img_rgb,img_disparity);
 */
 
+
     //ssi.disparityMap("X.xml");
 
+
+    //ssi.disparityMap("X.xml");
+/*
     //Convert
 
     // declare classes
@@ -122,6 +136,8 @@ int main(int argc, char *argv[])
      *  pointXYZRGB.                          *
      *  Point cloud filters applied           *
      *****************************************/
+
+
     mainCloud = utilities.matToCloud(img_rgb,img_disparity,Q,mainCloud);
     cloud_filtered = utilities.SOR_filter(mainCloud);
     pcl::PCDWriter writer;
@@ -171,5 +187,8 @@ int main(int argc, char *argv[])
       //visualizer.viewer->saveScreenshot("screenshot.png");
       boost::this_thread::sleep (boost::posix_time::microseconds (100000));
     }
+
+
+
     return 0;
 }
