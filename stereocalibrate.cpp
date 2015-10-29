@@ -75,7 +75,7 @@ void StereoCalibrate::findAndDrawChessBoardCorners(string filename)
         Mat img2 = fullImg(Range(300, imSize.height-800),Range(imSize.width/2, imSize.width-650)).clone();
         */
         std::cout << "full width =" << fullImg.size().width << std::endl;
-        std::cout << "left width = " << img1.size().width << std::endl;
+        std::cout << "left width = " << img1.size().width << " left height "<< img1.size().height << std::endl;
         std::cout << "right width = " << img2.size().width << std::endl;
         imgSize = img1.size();
         int success = 0, k = 0;
@@ -378,8 +378,10 @@ void StereoCalibrate::initUndistort()
     Size imSize = fullImg.size();
 
     Mat img1 = fullImg(Range(0, imSize.height),Range(0, imSize.width/2)).clone();
+   pyrDown(img1,img1,Size(img1.cols/2,img1.rows/2));
 
     Mat img2 = fullImg(Range(0, imSize.height),Range(imSize.width/2, imSize.width)).clone();
+    pyrDown(img2,img2,Size(img2.cols/2,img2.rows/2));
     /*
     Mat img1 = fullImg(Range(300, imSize.height-800),Range(650, imSize.width/2)).clone();
 
@@ -398,11 +400,12 @@ void StereoCalibrate::initUndistort()
 
     remap(img1, imgU1, map1x, map1y, INTER_CUBIC, BORDER_CONSTANT, Scalar());
     remap(img2, imgU2, map2x, map2y, INTER_CUBIC, BORDER_CONSTANT, Scalar());
-    namedWindow("image1",WINDOW_NORMAL| WINDOW_KEEPRATIO);
-    namedWindow("image2",WINDOW_NORMAL| WINDOW_KEEPRATIO);
+    namedWindow("image1",WINDOW_AUTOSIZE);
+    namedWindow("image2",WINDOW_AUTOSIZE);
     namedWindow("disp",WINDOW_KEEPRATIO);
 //    imshow("image1", imgU1);
  //   imshow("image2", imgU2);
+
     /*
     string img1Path = CALIBFOLDER;
     img1Path.append("leftChessbordW.jpg");
@@ -411,6 +414,7 @@ void StereoCalibrate::initUndistort()
     img1Path.append("rightChessbordW.jpg");
     imwrite(img1Path,imgU2);
     */
+    imwrite("../Lokaverkefni2/myndir/test.jpg",img1);
     Mat g1,g2,disp,disp8,disp12;
     cvtColor(img1, g1, CV_BGR2GRAY);
     cvtColor(img2, g2, CV_BGR2GRAY);
@@ -425,21 +429,21 @@ void StereoCalibrate::initUndistort()
     cout << "channels "<< cn << endl;
     //sgbm->setBlockSize(3);
     sgbm->setDisp12MaxDiff(1);
-    sgbm->setUniquenessRatio(2);
-    //sgbm->setMode(StereoSGBM::MODE_SGBM);
-    sgbm->setMode(StereoSGBM::MODE_SGBM_3WAY);
+    //sgbm->setUniquenessRatio(2);
+    sgbm->setMode(StereoSGBM::MODE_SGBM);
+    //sgbm->setMode(StereoSGBM::MODE_SGBM_3WAY);
 
     sgbm->setMinDisparity(0);
-    sgbm->setNumDisparities(1920);
+    sgbm->setNumDisparities(192);
     //sgbm->setP1(600);
     //sgbm->setP2(2400);
     //sgbm->setP1(8*cn*sgbmWinSize*sgbmWinSize);
     //sgbm->setP2(32*cn*sgbmWinSize*sgbmWinSize);
-    sgbm->setP1(24*cn*sgbmWinSize*sgbmWinSize);
-    sgbm->setP2(96*cn*sgbmWinSize*sgbmWinSize);
-    sgbm->setPreFilterCap(192);
+    sgbm->setP1(24*sgbmWinSize*sgbmWinSize);
+    sgbm->setP2(96*sgbmWinSize*sgbmWinSize);
+    sgbm->setPreFilterCap(5);
     sgbm->setSpeckleRange(2);
-    sgbm->setSpeckleWindowSize(10);
+    sgbm->setSpeckleWindowSize(50);
 
     sgbm->compute(g1, g2, disp);
 
@@ -460,7 +464,7 @@ void StereoCalibrate::initUndistort()
 
 
     //test filter
-/*
+
     Ptr<DisparityWLSFilter> wls_filter;
 
 
@@ -478,9 +482,9 @@ void StereoCalibrate::initUndistort()
         String filter = "wls_conf";
 
 
-            int max_disp = 384;
-            double lambda = 8000.0;
-            double sigma  = 1.5;
+            int max_disp = 192;
+            double lambda = 2000.0;
+            double sigma  = 0.8;
             double vis_mult = 1.0;
             int wsize = 3;
 
@@ -489,10 +493,10 @@ void StereoCalibrate::initUndistort()
 
         left_matcher->setP1(24*wsize*wsize);
         left_matcher->setP2(96*wsize*wsize);
-        left_matcher->setPreFilterCap(5);
+        left_matcher->setPreFilterCap(64);
         left_matcher->setSpeckleRange(2);
-        left_matcher->setSpeckleWindowSize(10);
-        left_matcher->setMinDisparity(-192);
+        left_matcher->setSpeckleWindowSize(50);
+        left_matcher->setMinDisparity(0);
         left_matcher->setMode(StereoSGBM::MODE_SGBM_3WAY);
         wls_filter = cv::ximgproc::createDisparityWLSFilter(left_matcher);
 
@@ -539,10 +543,13 @@ void StereoCalibrate::initUndistort()
                         namedWindow("filtered disparity", WINDOW_NORMAL| WINDOW_KEEPRATIO);
                         imshow("filtered disparity", filtered_disp_vis);
 
-                        string img1Path = CALIBFOLDER;
-                        img1Path.append("disp5.jpg");
-                        imwrite(img1Path,filtered_disp_vis);
-*/
+                        normalize(filtered_disp_vis, disp8, 0, 255, CV_MINMAX, CV_8U);
+                        imshow("bleh",disp8);
+
+                        string img2Path = CALIBFOLDER;
+                        img2Path.append("disp5v.jpg");
+                        imwrite(img2Path,filtered_disp_vis);
+
     //end test filter
 
     waitKey(0);

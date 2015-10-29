@@ -64,19 +64,15 @@ void bleh()
 
 int main(int argc, char *argv[])
 {
+
     StereoCalibrate cc;
     //cc.findAndDrawChessBoardCorners();
     //bleh();
-    //cc.findAndDrawChessBoardCorners("C:/Users/Notandi/Documents/GitHub/Lokaverkefni2/Y.xml");
-    //cc.CalibrateStereoCamera();
+    cc.findAndDrawChessBoardCorners("../Lokaverkefni2/Y.xml");
+    cc.CalibrateStereoCamera();
     //cc.initUndistort();
-    Mat blarg = imread("../Lokaverkefni2/myndir/calib4_fixed.jpg",IMREAD_COLOR);
-    namedWindow( "blerg",WINDOW_AUTOSIZE);
-    namedWindow( "blurg",WINDOW_AUTOSIZE);
-    pyrDown(blarg,blarg,Size(blarg.cols/2,blarg.rows/2));
-    Size imSize = blarg.size();
 
-    Mat img1 = blarg(Range(0, imSize.height),Range(0, imSize.width/2)).clone();
+
 
     //cc.findAndDrawChessBoardCorners("X.xml");
 
@@ -93,20 +89,19 @@ int main(int argc, char *argv[])
 
 
     //ssi.disparityMap("C:/Users/Notandi/Documents/GitHub/Lokaverkefni2/Y.xml");
-/*
+
     //Convert
     //untill sterio calibration is complete use these test images
-    Mat img_rgb = imread("C:/Users/Notandi/Pictures/Screenshots/left.png", CV_LOAD_IMAGE_COLOR);
-    Mat img_disparity = imread("C:/Users/Notandi/Pictures/Screenshots/disp.jpg", CV_LOAD_IMAGE_GRAYSCALE);
-    Convert con(img_rgb,img_disparity);
-*/
+    Mat img_rgb = imread("../Lokaverkefni2/myndir/check.jpg", CV_LOAD_IMAGE_COLOR);
+    Mat img_disparity = imread("../Lokaverkefni2/myndir/checkdisp.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+
+
+
+    //ssi.disparityMap("X.xml");
 
 
     //ssi.disparityMap("X.xml");
 
-
-    //ssi.disparityMap("X.xml");
-/*
     //Convert
 
     // declare classes
@@ -122,11 +117,10 @@ int main(int argc, char *argv[])
     pcl::PolygonMesh triangles;
 
     Mat Q;
-    string file = "Q.xml";  // moved files to debug & release folder "relative path"
+    string file = "../Lokaverkefni2/Q.xml";  // moved files to debug & release folder "relative path"
     FileStorage fs(file, cv::FileStorage::READ);
     fs["Q"] >> Q;                                           //Load Matrix Q
-    Mat img_rgb = imread("left.png", CV_LOAD_IMAGE_COLOR);              // moved files to debug & release folder "relative path"
-    Mat img_disparity = imread("disp.jpg", CV_LOAD_IMAGE_GRAYSCALE);    // moved files to debug & release folder "relative path"
+
 
     // PCL variables & other temp location*****
 
@@ -181,6 +175,7 @@ int main(int argc, char *argv[])
     /***********Main render loop**************
      *  Loop untils pcl viewer is turned off *
     ******************************************/
+
     while ( !visualizer.viewer->wasStopped())
     {
       visualizer.viewer->spinOnce(100);
