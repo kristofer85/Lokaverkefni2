@@ -113,7 +113,6 @@ pcl::PolygonMesh Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr clo
     pcl::PolygonMesh polygon;
     // Set the maximum distance between connected points (maximum edge length)
     triangulation.setSearchRadius (0.025);
-    triangulation.getConsistentVertexOrdering();
     // Set typical values for the parameters
     triangulation.setMu (2.5);
     triangulation.setMaximumNearestNeighbors (200);
@@ -131,6 +130,7 @@ pcl::PolygonMesh Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr clo
     //std::vector<int> parts = gp3.getPartIDs();
     //std::vector<int> states = gp3.getPointStates();
     pcl::io::saveVTKFile("triangulate.vtk", polygon);
+
 
 
     return polygon;
