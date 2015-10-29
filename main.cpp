@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
      * view-Z axis with an offset of half the  *
      * distance in X-axis between the mirrors  *
      ******************************************/
-     /***viewport is split screen not useful****
+    /****viewport is split screen not useful****
      *******************************************/
 
 

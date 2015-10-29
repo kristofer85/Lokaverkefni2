@@ -31,6 +31,7 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> Visualizer::displayPolyMesh
     viewer->setBackgroundColor (0, 0, 0);
     viewer->addPolygonMesh(triangles,"triangulation.vtk");
     viewer->addCoordinateSystem ( 1.0 );
+    viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 1, 0, 0,"normals");
     //viewer->initCameraParameters ();
     return (viewer);
 }
