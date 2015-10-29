@@ -400,7 +400,7 @@ void StereoCalibrate::initUndistort()
     remap(img2, imgU2, map2x, map2y, INTER_CUBIC, BORDER_CONSTANT, Scalar());
     namedWindow("image1",WINDOW_NORMAL| WINDOW_KEEPRATIO);
     namedWindow("image2",WINDOW_NORMAL| WINDOW_KEEPRATIO);
-    namedWindow("disp",WINDOW_KEEPRATIO);
+    namedWindow("disp",WINDOW_NORMAL | WINDOW_KEEPRATIO);
 //    imshow("image1", imgU1);
  //   imshow("image2", imgU2);
     /*

@@ -36,63 +36,35 @@
 
 using namespace cv;
 using namespace std;
-void bleh()
-{
-    Mat fullImg;
-    string bleh = "C:/Users/notandi/Pictures/kula_calib_myndir2/calibMyndir_fixed/test/calib4_fixed.jpg";
-    fullImg = imread(bleh,IMREAD_COLOR);
-    Size imSize = fullImg.size();
-    Mat img1 = fullImg(Range(300, imSize.height-800),Range(650, imSize.width/2)).clone();
-
-    Mat img2 = fullImg(Range(300, imSize.height-800),Range(imSize.width/2, imSize.width-650)).clone();
-    namedWindow( "Left Window",WINDOW_NORMAL|WINDOW_KEEPRATIO);
-    namedWindow( "Right Window",WINDOW_NORMAL|WINDOW_KEEPRATIO);
-    imshow("Left Window", img1);
-    imshow("Right Window", img2);
-
-    waitKey(0);
-}
-
-
-/*
- *
- *
- *
- */
-
 
 
 int main(int argc, char *argv[])
 {
     StereoCalibrate cc;
-    //cc.findAndDrawChessBoardCorners();
-    //bleh();
-    //cc.findAndDrawChessBoardCorners("C:/Users/Notandi/Documents/GitHub/Lokaverkefni2/Y.xml");
-    //cc.CalibrateStereoCamera();
-    //cc.initUndistort();
-    Mat blarg = imread("../Lokaverkefni2/myndir/calib4_fixed.jpg",IMREAD_COLOR);
-    namedWindow( "blerg",WINDOW_AUTOSIZE);
-    namedWindow( "blurg",WINDOW_AUTOSIZE);
-    pyrDown(blarg,blarg,Size(blarg.cols/2,blarg.rows/2));
-    Size imSize = blarg.size();
+    cc.findAndDrawChessBoardCorners();
 
-    Mat img1 = blarg(Range(0, imSize.height),Range(0, imSize.width/2)).clone();
+    // Read multiple image for stereo calibration &
+    // findChessBoard corners
+    //cc.findAndDrawChessBoardCorners("Y.xml");
+    cc.CalibrateStereoCamera();
+    //cc.initUndistort();
+
 
     //cc.findAndDrawChessBoardCorners("X.xml");
 
-    string g = "Y.xml";
-    //cc.findAndDrawChessBoardCorners(g);
 
-    //cc.CalibrateStereoCamera();
-    //cc.initUndistort();
+
+
+
+
     //cc.rectifyCamera();
-    //StereoScopicImage ssi;
-    //ssi.rectifyCamera();
-    //ssi.disparityMap();
+    StereoScopicImage ssi;
+    ssi.rectifyCamera();
+    ssi.disparityMap();
 
 
 
-    //ssi.disparityMap("C:/Users/Notandi/Documents/GitHub/Lokaverkefni2/Y.xml");
+    //ssi.disparityMap("Y.xml");
 /*
     //Convert
     //untill sterio calibration is complete use these test images
@@ -106,7 +78,7 @@ int main(int argc, char *argv[])
 
 
     //ssi.disparityMap("X.xml");
-/*
+
     //Convert
 
     // declare classes
