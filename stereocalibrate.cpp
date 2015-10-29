@@ -1,6 +1,5 @@
 #include "stereocalibrate.h"
 #include <opencv2/core/utility.hpp>
-//#include "opencv2/ximgproc/disparity_filter.hpp"
 #include <opencv2/ximgproc/disparity_filter.hpp>
 #include <opencv2/ximgproc.hpp>
 #include <opencv2/core/ocl.hpp>

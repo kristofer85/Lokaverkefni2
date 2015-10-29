@@ -5,35 +5,8 @@ using namespace boost;
 using namespace pcl;
 using namespace pcl::visualization;
 
-Convert::Convert()
-{
-}
+Convert::Convert(){}
 
-shared_ptr<PCLVisualizer> Convert::createVisualizer (PointCloud<PointXYZRGB>::ConstPtr cloud)
-{
-    shared_ptr<PCLVisualizer> viewer (new PCLVisualizer ("3D Viewer"));
-    viewer->setBackgroundColor (0, 0, 0);
-    PointCloudColorHandlerRGBField<PointXYZRGB> rgb(cloud);
-    viewer->addPointCloud<PointXYZRGB> (cloud, rgb, "reconstruction");
-    viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "reconstruction");
-    viewer->addCoordinateSystem ( 1.0 );
-    viewer->initCameraParameters ();
-return (viewer);
-}
-
-shared_ptr<PCLVisualizer> Convert::polyMeshVisualizer (PointCloud<PointXYZRGB>::ConstPtr cloud,pcl::PolygonMesh triangles)
-{
-    shared_ptr<PCLVisualizer> viewer (new PCLVisualizer ("3D Viewer"));
-    viewer->setBackgroundColor (0, 0, 0);
-    //pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(cloud);
-    viewer->addPolygonMesh(triangles,"triangulation.vtk");
-    //viewer->addPointCloud<pcl::PointXYZRGB> (cloud, rgb, "sample cloud");
-    //viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "sample cloud");
-    viewer->addCoordinateSystem ( 1.0 );
-    viewer->initCameraParameters ();
-return (viewer);
-}
-//make a function to convert a cv mat into a point cloud
 PointCloud<PointXYZRGB>::Ptr Convert::matToCloud(Mat rgb,Mat disp,Mat Q,PointCloud<PointXYZRGB>::Ptr Cloud)
 {
     double px, py, pz;
@@ -83,7 +56,12 @@ PointCloud<PointXYZRGB>::Ptr Convert::matToCloud(Mat rgb,Mat disp,Mat Q,PointClo
 }
 
 
-
+/*******************************************
+ *  Our sparse outlier removal is based on *
+ *  the computation of the distribution of *
+ *  point to neighbors distances in the    *
+ *  input dataset                          *
+ ******************************************/
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr Convert::SOR_filter(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
 {
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr filter (new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -95,18 +73,30 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr Convert::SOR_filter(pcl::PointCloud<pcl::
     return filter;
 
 }
+/*******************************************
+ *  The method works by maintaining a list *
+ *  of points from which the mesh can be   *
+ *  grown and extending it until all       *
+ *  possible points are  connected.        *
+ *******************************************/
 
 pcl::PolygonMesh Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
 {
+    // Load input file into a PointCloud<T> with an appropriate type
+    pcl::PCLPointCloud2 cloud_blob;
+    pcl::io::loadPCDFile ("triangulate.pcd", cloud_blob);
+    pcl::fromPCLPointCloud2 (cloud_blob, *cloud);
+    //* the data should be available in cloud
+    //pcl::io::savePCDFileASCII ("tri.pcd", *cloud);
     // Normal estimation
-    pcl::PolygonMesh polygon;
+
     pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> n;
     pcl::PointCloud<pcl::Normal>::Ptr normals (new pcl::PointCloud<pcl::Normal>);
     pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
     tree->setInputCloud (cloud);
     n.setInputCloud (cloud);
     n.setSearchMethod (tree);
-    n.setKSearch (50);
+    n.setKSearch (200);
     n.compute (*normals);
 
     // Concatenate the XYZRGB and normal fields*
@@ -119,55 +109,34 @@ pcl::PolygonMesh Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr clo
     tree2->setInputCloud (cloud_with_normals);
 
     // Initialize objects
-    pcl::GreedyProjectionTriangulation<pcl::PointXYZRGBNormal> gp3;
-
+    pcl::GreedyProjectionTriangulation<pcl::PointXYZRGBNormal> triangulation;
+    pcl::PolygonMesh polygon;
     // Set the maximum distance between connected points (maximum edge length)
-    gp3.setSearchRadius (0.025);
-
+    triangulation.setSearchRadius (0.025);
+    triangulation.getConsistentVertexOrdering();
     // Set typical values for the parameters
-    gp3.setMu (2.5);
-    gp3.setMaximumNearestNeighbors (200);
-    gp3.setMaximumSurfaceAngle(M_PI/4); // 45 degrees
-    gp3.setMinimumAngle(M_PI/18); // 10 degrees
-    gp3.setMaximumAngle(2*M_PI/3); // 120 degrees
-    gp3.setNormalConsistency(false);
+    triangulation.setMu (2.5);
+    triangulation.setMaximumNearestNeighbors (200);
+    triangulation.setMaximumSurfaceAngle(M_PI/4); // 45 degrees
+    triangulation.setMinimumAngle(M_PI/18); // 10 degrees
+    triangulation.setMaximumAngle(2*M_PI/3); // 120 degrees
+    triangulation.setNormalConsistency(false);
 
     // Get result
-    gp3.setInputCloud (cloud_with_normals);
-    gp3.setSearchMethod (tree2);
-    gp3.reconstruct (polygon);
+    triangulation.setInputCloud (cloud_with_normals);
+    triangulation.setSearchMethod (tree2);
+    triangulation.reconstruct (polygon);
 
     // Additional vertex information
-    std::vector<int> parts = gp3.getPartIDs();
-    std::vector<int> states = gp3.getPointStates();
+    //std::vector<int> parts = gp3.getPartIDs();
+    //std::vector<int> states = gp3.getPointStates();
+    pcl::io::saveVTKFile("triangulate.vtk", polygon);
 
-    pcl::io::saveVTKFile("triangulation.vtk", polygon);
 
     return polygon;
 
 }
 
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr Convert::pointXYZRGB(cv::Mat rgb,cv::Mat disp,pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
-{
-    Mat Q;
-    string file = "Q.xml";  // moved files to debug & release folder "relative path"
-    //Load Matrix Q
-    FileStorage fs(file, cv::FileStorage::READ);
 
-    fs["Q"] >> Q;
-
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_cloud_ptr (new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
-
-    point_cloud_ptr = matToCloud(rgb,disp,Q,point_cloud_ptr);
-    cloud_filtered = SOR_filter(point_cloud_ptr);
-
-    // Use for viewing point cloud with pointXYZRGB
-    //viewer = createVisualizer( cloud_filtered );
-
-
-    return cloud_filtered;
-
-}
 
 

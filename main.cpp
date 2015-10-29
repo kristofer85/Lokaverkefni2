@@ -1,3 +1,4 @@
+//#include <pcl/pcl_tests.h>
 #include "stereocalibrate.h"
 #include <QApplication>
 #include <opencv/cv.h>
@@ -11,15 +12,13 @@
 #include "convert.h"
 #include <iostream>
 #include <string>
-#include <opencv/cv.h>
-#include <opencv2/core.hpp>
-#include <opencv2/core/core.hpp>
-#include <string>
 #include <iostream>
 //#include "pclwindow.h"
 #include <pcl/common/common_headers.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
+#include <pcl/surface/gp3.h>
+#include <pcl/io/vtk_io.h>
 #include <pcl/visualization/pcl_visualizer.h>
 #include <boost/thread/thread.hpp>
 #include <pcl/filters/statistical_outlier_removal.h>
@@ -31,6 +30,9 @@
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/extract_indices.h>
 #include "dataholder.h"
+#include <boost/thread/thread.hpp>
+#include "visualizer.h"
+
 
 using namespace cv;
 using namespace std;
@@ -76,19 +78,20 @@ int main(int argc, char *argv[])
 
     Mat img1 = blarg(Range(0, imSize.height),Range(0, imSize.width/2)).clone();
 
-    Mat img2 = blarg(Range(0, imSize.height),Range(imSize.width/2, imSize.width)).clone();
-    std::cout << "left width = " << img1.size().width << " left height "<< img1.size().height << std::endl;
-    std::cout << "right width = " << img2.size().width << std::endl;
-    imshow("blerg",img1);
-    imshow("blurg",img2);
-    waitKey(0);
     //cc.findAndDrawChessBoardCorners("X.xml");
+
+    string g = "Y.xml";
+    //cc.findAndDrawChessBoardCorners(g);
+
     //cc.CalibrateStereoCamera();
     //cc.initUndistort();
     //cc.rectifyCamera();
     //StereoScopicImage ssi;
     //ssi.rectifyCamera();
     //ssi.disparityMap();
+
+
+
     //ssi.disparityMap("C:/Users/Notandi/Documents/GitHub/Lokaverkefni2/Y.xml");
 /*
     //Convert
@@ -98,30 +101,94 @@ int main(int argc, char *argv[])
     Convert con(img_rgb,img_disparity);
 */
 
+
+    //ssi.disparityMap("X.xml");
+
+
     //ssi.disparityMap("X.xml");
 /*
     //Convert
-    //untill sterio calibration is complete use these test images
+
+    // declare classes
+    Convert utilities;
+    Visualizer visualizer;
+    DataHolder dataHolder;
+
+    // PCL variables & other temp location*****
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr mainCloud (new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr triangulate_cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
+    boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
     pcl::PolygonMesh triangles;
+
+    Mat Q;
+    string file = "Q.xml";  // moved files to debug & release folder "relative path"
+    FileStorage fs(file, cv::FileStorage::READ);
+    fs["Q"] >> Q;                                           //Load Matrix Q
     Mat img_rgb = imread("left.png", CV_LOAD_IMAGE_COLOR);              // moved files to debug & release folder "relative path"
     Mat img_disparity = imread("disp.jpg", CV_LOAD_IMAGE_GRAYSCALE);    // moved files to debug & release folder "relative path"
-    Convert utilities;
-    triangulate_cloud = utilities.pointXYZRGB(img_rgb,img_disparity,mainCloud);
-    utilities.viewer = utilities.createVisualizer( triangulate_cloud );
+
+    // PCL variables & other temp location*****
+
+    /*point cloud 2 xyzrgb, filers,triangulate*
+     *  point cloud from rgb image, depth     *
+     *  image & an empty point cloud of       *
+     *  pointXYZRGB.                          *
+     *  Point cloud filters applied           *
+     *****************************************/
 
 
-    // Use for viewing triangulated point cloud || polymesh
-    //triangles = utilities.triangulate(triangulate_cloud);
-    //utilities.viewer->addPolygonMesh(triangles,"triangulation.vtk");
-    //utilities.viewer = utilities.polyMeshVisualizer(triangulate_cloud,triangles);
-    //viewer->addCoordinateSystem (1.0);
-    while ( !utilities.viewer->wasStopped())
+    mainCloud = utilities.matToCloud(img_rgb,img_disparity,Q,mainCloud);
+    cloud_filtered = utilities.SOR_filter(mainCloud);
+    pcl::PCDWriter writer;
+    //writer.write<pcl::PointXYZRGB> ("triangulate.pcd", *cloud_filtered, false);
+    pcl::io::savePCDFileBinaryCompressed ("triangulate.pcd", *cloud_filtered);
+    pcl::io::loadPCDFile("triangulate.pcd", *mainCloud);
+    triangles = utilities.triangulate(mainCloud);
+
+
+    /***********viewport setup******************
+     * default viewport is from left side.     *
+     * The right side can be found by          *
+     * mirroring the left camera over the left *
+     * camera Y-up axis & the left camera      *
+     * view-Z axis with an offset of half the  *
+     * distance in X-axis between the mirrors  *
+     ******************************************/
+     /***viewport is split screen not useful****
+     *******************************************/
+
+
+
+
+
+
+    if(visualizer.displayPoly == false && visualizer.displayPoints == true)
+        visualizer.viewer = visualizer.displayPointCloudColor(cloud_filtered);      // view point cloud
+    else if(visualizer.displayPoly == true && visualizer.displayPoints == false)
     {
-      utilities.viewer->spinOnce(100);
+        pcl::io::saveVTKFile("triangulation.vtk", triangles);                   // save polygon Mesh to file
+        visualizer.viewer = visualizer.displayPolyMesh(cloud_filtered,triangles); // view polyMesh
+    }
+    else
+    {
+        // view point cloud with objects(used for locating the point cloud
+        visualizer.viewer = visualizer.displayLocatorObject(cloud_filtered);
+    }
+
+
+
+    /***********Main render loop**************
+     *  Loop untils pcl viewer is turned off *
+    ******************************************/
+    while ( !visualizer.viewer->wasStopped())
+    {
+      visualizer.viewer->spinOnce(100);
+      //visualizer.viewer->saveScreenshot("screenshot.png");
       boost::this_thread::sleep (boost::posix_time::microseconds (100000));
     }
-    */
+
+
+
     return 0;
 }

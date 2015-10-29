@@ -33,3 +33,6 @@ Makefile*
 *.qmlproject.user
 *.qmlproject.user.*
 *.pro
+*.pro
+Lokaverkefni2.pro
+*.pro

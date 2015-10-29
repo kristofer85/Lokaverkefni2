@@ -7,6 +7,15 @@ StereoScopicImage::StereoScopicImage()
 
 }
 
+
+/*******************************************
+ * The functions in this section use a     *
+ * so-called pinhole camera model. In this *
+ * model, a scene view is formed by        *
+ * projecting 3D points into the image     *
+ * plane using a perspective               *
+ * transformation.                         *
+ ******************************************/
 void StereoScopicImage::rectifyCamera()
 {
     /*
