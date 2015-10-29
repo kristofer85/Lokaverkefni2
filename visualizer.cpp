@@ -1,5 +1,6 @@
 #include "visualizer.h"
-
+using namespace pcl;
+using namespace pcl::visualization;
 Visualizer::Visualizer()
 {
 
@@ -7,7 +8,7 @@ Visualizer::Visualizer()
 
 boost::shared_ptr<pcl::visualization::PCLVisualizer> pointCloudVisualizer (pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud)
 {
-  boost::shared_ptr<PCLVisualizer> viewer (new PCLVisualizer ("3D Viewer"));
+  boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new PCLVisualizer ("3D Viewer"));
   viewer->setBackgroundColor (0, 0, 0);
   PointCloudColorHandlerRGBField<PointXYZRGB> rgb(cloud);
   viewer->addPointCloud<PointXYZRGB> (cloud, rgb, "reconstruction");

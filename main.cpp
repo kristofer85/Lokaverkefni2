@@ -37,7 +37,7 @@ using namespace std;
 void bleh()
 {
     Mat fullImg;
-    string bleh = "C:/Users/kristinn/Pictures/kula_calib_myndir/calibMyndir_fixed/test/calib4_fixed.jpg";
+    string bleh = "C:/Users/notandi/Pictures/kula_calib_myndir2/calibMyndir_fixed/test/calib4_fixed.jpg";
     fullImg = imread(bleh,IMREAD_COLOR);
     Size imSize = fullImg.size();
     Mat img1 = fullImg(Range(300, imSize.height-800),Range(650, imSize.width/2)).clone();
@@ -62,25 +62,33 @@ void bleh()
 
 int main(int argc, char *argv[])
 {
-    //StereoCalibrate cc;
+    StereoCalibrate cc;
     //cc.findAndDrawChessBoardCorners();
     //bleh();
+    //cc.findAndDrawChessBoardCorners("C:/Users/Notandi/Documents/GitHub/Lokaverkefni2/Y.xml");
+    //cc.CalibrateStereoCamera();
+    //cc.initUndistort();
+    Mat blarg = imread("../Lokaverkefni2/myndir/calib4_fixed.jpg",IMREAD_COLOR);
+    namedWindow( "blerg",WINDOW_AUTOSIZE);
+    namedWindow( "blurg",WINDOW_AUTOSIZE);
+    pyrDown(blarg,blarg,Size(blarg.cols/2,blarg.rows/2));
+    Size imSize = blarg.size();
 
+    Mat img1 = blarg(Range(0, imSize.height),Range(0, imSize.width/2)).clone();
 
-<<<<<<< HEAD
-    cc.findAndDrawChessBoardCorners("C:/Users/Notandi/Documents/GitHub/Lokaverkefni2/Y.xml");
-    cc.CalibrateStereoCamera();
-    cc.initUndistort();
-=======
+    Mat img2 = blarg(Range(0, imSize.height),Range(imSize.width/2, imSize.width)).clone();
+    std::cout << "left width = " << img1.size().width << " left height "<< img1.size().height << std::endl;
+    std::cout << "right width = " << img2.size().width << std::endl;
+    imshow("blerg",img1);
+    imshow("blurg",img2);
+    waitKey(0);
     //cc.findAndDrawChessBoardCorners("X.xml");
     //cc.CalibrateStereoCamera();
     //cc.initUndistort();
->>>>>>> origin/master
     //cc.rectifyCamera();
     //StereoScopicImage ssi;
     //ssi.rectifyCamera();
     //ssi.disparityMap();
-<<<<<<< HEAD
     //ssi.disparityMap("C:/Users/Notandi/Documents/GitHub/Lokaverkefni2/Y.xml");
 /*
     //Convert
@@ -89,9 +97,9 @@ int main(int argc, char *argv[])
     Mat img_disparity = imread("C:/Users/Notandi/Pictures/Screenshots/disp.jpg", CV_LOAD_IMAGE_GRAYSCALE);
     Convert con(img_rgb,img_disparity);
 */
-=======
-    //ssi.disparityMap("X.xml");
 
+    //ssi.disparityMap("X.xml");
+/*
     //Convert
     //untill sterio calibration is complete use these test images
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr mainCloud (new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -114,6 +122,6 @@ int main(int argc, char *argv[])
       utilities.viewer->spinOnce(100);
       boost::this_thread::sleep (boost::posix_time::microseconds (100000));
     }
->>>>>>> origin/master
+    */
     return 0;
 }
