@@ -17,14 +17,20 @@ SOURCES += main.cpp\
     dataholder.cpp \
     stereocalibrate.cpp \
     stereoscopicimage.cpp \
-    convert.cpp
+    convert.cpp \
+    pclfilters.cpp \
+    reprojectimageto3d.cpp \
+    visualizer.cpp
 
 HEADERS  += mainwindow.h \
     dataholder.h \
     stereocalibrate.h \
     stereoscopicimage.h \
     defines.h \
-    convert.h
+    convert.h \
+    pclfilters.h \
+    reprojectimageto3d.h \
+    visualizer.h
 
 FORMS    += mainwindow.ui
 
