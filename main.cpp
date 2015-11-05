@@ -32,23 +32,33 @@
 #include "dataholder.h"
 #include <boost/thread/thread.hpp>
 #include "visualizer.h"
-
+#include "utils.h"
 
 using namespace cv;
 using namespace std;
 void bleh()
 {
-    Mat fullImg;
-    string bleh = "C:/Users/notandi/Pictures/kula_calib_myndir2/calibMyndir_fixed/test/calib4_fixed.jpg";
+    Mat fullImg,img1,img2;
+
+    string bleh = "C:/Users/notandi/Pictures/kula_calib_myndir2/calibMyndir_fixed/calib4_fixed.jpg";
     fullImg = imread(bleh,IMREAD_COLOR);
     Size imSize = fullImg.size();
-    Mat img1 = fullImg(Range(300, imSize.height-800),Range(650, imSize.width/2)).clone();
 
-    Mat img2 = fullImg(Range(300, imSize.height-800),Range(imSize.width/2, imSize.width-650)).clone();
+    double zoom = 0;
+    StereoCalibrate c2;
+    img1 = fullImg(Range(0, imSize.height),Range(0, imSize.width/2)).clone();
+
+    img2 = fullImg(Range(0, imSize.height),Range(imSize.width/2, imSize.width)).clone();
+    matPair pair;
+    pair.left = img1;
+    pair.right = img2;
+    pair = c2.undestort(pair);
+    pair = BorderRemoveal(pair);
+    //ult.splitImage(fullImg,img1,img2);
     namedWindow( "Left Window",WINDOW_NORMAL|WINDOW_KEEPRATIO);
     namedWindow( "Right Window",WINDOW_NORMAL|WINDOW_KEEPRATIO);
-    imshow("Left Window", img1);
-    imshow("Right Window", img2);
+    imshow("Left Window", pair.left);
+    imshow("Right Window", pair.right);
 
     waitKey(0);
 }
@@ -68,9 +78,28 @@ int main(int argc, char *argv[])
     StereoCalibrate cc;
     //cc.findAndDrawChessBoardCorners();
     //bleh();
+
+
     cc.findAndDrawChessBoardCorners("../Lokaverkefni2/Y.xml");
+    string bleh = "C:/Users/notandi/Pictures/kula_calib_myndir2/calibMyndir_fixed/calib4_fixed.jpg";
+    Mat fullImg, NewImg;
+    fullImg = imread(bleh,IMREAD_COLOR);
+    NewImg = cc.undestortZoom(fullImg,bleh);
+
+    Size imSize = fullImg.size();
+
+    Mat img1 = fullImg(Range(0, imSize.height),Range(0, imSize.width/2)).clone();
+
+    Mat img2 = fullImg(Range(0, imSize.height),Range(imSize.width/2, imSize.width)).clone();
+    matPair pair;
+    pair.left = img1;
+    pair.right = img2;
+    pair = cc.undestort(pair);
+    pair = BorderRemoveal(pair);
+    cc.img1 = pair.left;
+    cc.img2 = pair.right;
     cc.CalibrateStereoCamera();
-    //cc.initUndistort();
+    cc.initUndistort();
 
 
 
@@ -93,7 +122,7 @@ int main(int argc, char *argv[])
     //Convert
     //untill sterio calibration is complete use these test images
     Mat img_rgb = imread("../Lokaverkefni2/myndir/check.jpg", CV_LOAD_IMAGE_COLOR);
-    Mat img_disparity = imread("../Lokaverkefni2/myndir/checkdisp.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+    Mat img_disparity = imread("../Lokaverkefni2/myndir/checkdisp2.jpg", CV_LOAD_IMAGE_GRAYSCALE);
 
 
 
@@ -179,7 +208,7 @@ int main(int argc, char *argv[])
     while ( !visualizer.viewer->wasStopped())
     {
       visualizer.viewer->spinOnce(100);
-      //visualizer.viewer->saveScreenshot("screenshot.png");
+      visualizer.viewer->saveScreenshot("screenshot.png");
       boost::this_thread::sleep (boost::posix_time::microseconds (100000));
     }
 

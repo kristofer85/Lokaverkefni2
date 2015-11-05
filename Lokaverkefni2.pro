@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     convert.cpp \
     pclfilters.cpp \
     reprojectimageto3d.cpp \
-    visualizer.cpp
+    visualizer.cpp \
+    utils.cpp
 
 HEADERS  += mainwindow.h \
     dataholder.h \
@@ -30,21 +31,27 @@ HEADERS  += mainwindow.h \
     convert.h \
     pclfilters.h \
     reprojectimageto3d.h \
-    visualizer.h
+    visualizer.h \
+    utils.h
 
 FORMS    += mainwindow.ui
 
 
-INCLUDEPATH += C:/msys64/mingw32/include/
+#INCLUDEPATH += C:/msys64/mingw32/include/
 INCLUDEPATH += C:/msys64/home/Notandi/opencv/build2/install/include/
 INCLUDEPATH += C:/msys64/home/Notandi/vtk/build/install/include/vtk-6.2
 INCLUDEPATH += C:/msys64/home/Notandi/cloudstuff/pl-build/install/include/pcl-1.8
 INCLUDEPATH += C:/msys64/mingw32/include/eigen3
 INCLUDEPATH += C:/msys64/home/Notandi/cloudstuff/flann-1.8.4-src/build/install/include
+INCLUDEPATH += C:/msys64/mingw32/include/json
+INCLUDEPATH += C:/msys64/mingw32/include/glib-2.0/
+INCLUDEPATH += C:/msys64/mingw32/include/
+INCLUDEPATH += C:/msys64/mingw32/lib/glib-2.0/include/
 
 win32: LIBS += -LC:/msys64/home/Notandi/vtk/build/install/lib \
                -LC:/msys64/home/Notandi/cloudstuff/pl-build/install/lib \
                -LC:/msys64/home/Notandi/opencv/build2/install/x86/mingw/lib \
+               -LC:/msys64/bin \
                 -lopencv_calib3d \
                 -lopencv_core300 \
                 -lopencv_features2d300 \
@@ -52,6 +59,7 @@ win32: LIBS += -LC:/msys64/home/Notandi/vtk/build/install/lib \
                 -lopencv_highgui300 \
                 -lopencv_imgproc300 \
                 -lopencv_hal300 \
+                -lopencv_ccalib300 \
                 -lopencv_imgcodecs300 \
                 -lopencv_objdetect300 \
                 -lopencv_photo300 \
@@ -70,6 +78,7 @@ win32: LIBS += -LC:/msys64/home/Notandi/vtk/build/install/lib \
                 -lopencv_ximgproc300 \
                 -lopencv_bgsegm300 \
                 -lopencv_xfeatures2d300 \
+                -lopencv_stereo300 \
                 -lpcl_common \
                 -lpcl_visualization \
                 -lpcl_io \
@@ -116,4 +125,8 @@ win32: LIBS += -LC:/msys64/home/Notandi/vtk/build/install/lib \
                 -lvtkRenderingVolume-6.2 \
                 -lboost_system-mt \
                 -lboost_thread-mt \
-                -lboost_filesystem-mt
+                -lboost_filesystem-mt\
+                -ljsoncpp \
+                #-ljson-glib-1.0-0\
+                -lexiv2 \
+                -llensfun

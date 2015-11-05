@@ -13,6 +13,7 @@
 #include "opencv2/hal/intrin.hpp"
 #include <opencv2/stereo.hpp>
 
+#include "utils.h"
 //using namespace cv;
 //using namespace std;
 
@@ -37,6 +38,7 @@ public:
     cv::Mat D1, D2;
     cv::Mat R, T, E, F;
     cv::Size imgSize;
+    float zoom_valueC,focalResC;
 
     StereoCalibrate();
     void findAndDrawChessBoardCorners();
@@ -44,5 +46,7 @@ public:
     void CalibrateStereoCamera();
     void rectifyCamera();
     void initUndistort();
+    matPair undestort(matPair mats);
+    cv::Mat undestortZoom(cv::Mat image,std::string file);
 };
 #endif // STEREOCALIBRATE_H

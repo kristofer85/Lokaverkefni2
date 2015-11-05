@@ -3,8 +3,8 @@ using namespace pcl;
 using namespace pcl::visualization;
 Visualizer::Visualizer()
 {
-    displayPoly = true;
-    displayPoints = false;
+    displayPoly = false;
+    displayPoints = true;
 }
 
 /***********Display point cloud***********
