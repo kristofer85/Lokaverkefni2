@@ -27,9 +27,9 @@ PointCloud<PointXYZRGB>::Ptr Convert::matToCloud(Mat rgb,Mat disp,Mat Q,PointClo
             uchar d = disp_ptr[j];
             if ( d == 0 ) continue; //Discard bad pixels
             double pw = -1.0 * static_cast<double>(d) * Q32 + Q33;
-            px = static_cast<double>(j) + Q03;
-            py = static_cast<double>(i) + Q13;
-            pz = Q23;
+            px = static_cast<double>(j) + Q03 ;
+            py = static_cast<double>(i) + Q13 ;
+            pz = Q23 ;
 
             px = px/pw;
             py = py/pw;
@@ -50,8 +50,19 @@ PointCloud<PointXYZRGB>::Ptr Convert::matToCloud(Mat rgb,Mat disp,Mat Q,PointClo
             Cloud->points.push_back (point);
         }
     }
+    for (int y = 0; y < Q.rows; y++)
+    {
+      const double* Qy = Q.ptr<double>(y);
+      for (int x = 0; x < Q.cols; x++)
+      {
+        std::cout << "Q(" << x << "," << y << ") = " << Qy[x] << std::endl;
+      }
+    }
     Cloud->width = (int) Cloud->points.size();
     Cloud->height = 1;
+    Cloud->resize(Cloud->width*Cloud->height);
+    //Cloud->width = disp.rows;
+    //Cloud->height = disp.cols;
     return Cloud;
 }
 
@@ -82,12 +93,7 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr Convert::SOR_filter(pcl::PointCloud<pcl::
 
 pcl::PolygonMesh Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
 {
-    // Load input file into a PointCloud<T> with an appropriate type
-    pcl::PCLPointCloud2 cloud_blob;
-    pcl::io::loadPCDFile ("triangulate.pcd", cloud_blob);
-    pcl::fromPCLPointCloud2 (cloud_blob, *cloud);
-    //* the data should be available in cloud
-    //pcl::io::savePCDFileASCII ("tri.pcd", *cloud);
+
     // Normal estimation
 
     pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> n;
@@ -103,22 +109,46 @@ pcl::PolygonMesh Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr clo
     pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud_with_normals (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
     pcl::concatenateFields (*cloud, *normals, *cloud_with_normals);
     //* cloud_with_normals = cloud + normals
-
+    pcl::PolygonMesh polygon;
     // Create search tree*
+    //std::vector<std::string> tex_files;
+    //tex_files.push_back("c.jpg");
+    //
+    //// initialize texture mesh
+    //TextureMesh tex_mesh;
+    //
+    //tex_mesh.cloud = polygon.cloud;
+    //
+    //// add the 1st mesh
+    //tex_mesh.tex_polygons.push_back(polygon.polygons);
     pcl::search::KdTree<pcl::PointXYZRGBNormal>::Ptr tree2 (new pcl::search::KdTree<pcl::PointXYZRGBNormal>);
     tree2->setInputCloud (cloud_with_normals);
+    //pcl::Poisson<PointXYZRGBNormal> possition;
+    //possition.setInputCloud(cloud_with_normals);
+    //possition.setConfidence(true);
+    //possition.setSearchMethod(tree2);
+    //possition.setDepth(8);
+    ////possition.setOutputPolygons(true);
+    ////std::cout << possition.getDepth();
+    //possition.setSolverDivide(7);
+    //possition.reconstruct(polygon);
+    //
+    //tex_mesh.cloud = polygon.cloud;
+
+    // add the 1st mesh
+    //tex_mesh.tex_polygons.push_back(polygon.polygons);
 
     // Initialize objects
     pcl::GreedyProjectionTriangulation<pcl::PointXYZRGBNormal> triangulation;
-    pcl::PolygonMesh polygon;
-    // Set the maximum distance between connected points (maximum edge length)
-    triangulation.setSearchRadius (0.025);
+
+     //Set the maximum distance between connected points (maximum edge length)
+    triangulation.setSearchRadius (5);
     // Set typical values for the parameters
     triangulation.setMu (2.5);
     triangulation.setMaximumNearestNeighbors (200);
     triangulation.setMaximumSurfaceAngle(M_PI/4); // 45 degrees
     triangulation.setMinimumAngle(M_PI/18); // 10 degrees
-    triangulation.setMaximumAngle(2*M_PI/3); // 120 degrees
+    triangulation.setMaximumAngle(2*M_PI/6); // 120 degrees
     triangulation.setNormalConsistency(false);
 
     // Get result
@@ -126,9 +156,9 @@ pcl::PolygonMesh Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr clo
     triangulation.setSearchMethod (tree2);
     triangulation.reconstruct (polygon);
 
-    // Additional vertex information
-    //std::vector<int> parts = gp3.getPartIDs();
-    //std::vector<int> states = gp3.getPointStates();
+     //Additional vertex information
+    //std::vector<int> parts = triangulation.getPartIDs();
+    //std::vector<int> states = triangulation.getPointStates();
     pcl::io::saveVTKFile("triangulate.vtk", polygon);
 
 
@@ -137,6 +167,33 @@ pcl::PolygonMesh Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr clo
 
 }
 
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr Convert::curveNormals(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+{
+    pcl::PointCloud<pcl::Normal>::Ptr normals (new pcl::PointCloud<pcl::Normal>);
 
+    pcl::IntegralImageNormalEstimation<pcl::PointXYZRGB, pcl::Normal> ne;
+    ne.setNormalEstimationMethod (ne.AVERAGE_DEPTH_CHANGE);
+    ne.setMaxDepthChangeFactor(20.5f);
+    ne.setNormalSmoothingSize(10.0f);
+    ne.setInputCloud(cloud);
+    ne.compute(*normals);
+    return cloud;
+}
 
+pcl::PointCloud<pcl::PointXYZI>::Ptr Convert::disparityToPointCloud(string disparity)
+{
+    pcl::PointCloud<pcl::PointXYZI>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZI>);
+    pcl::PointCloud<pcl::RGB>::Ptr left_image (new pcl::PointCloud<pcl::RGB>);
+    pcl::DisparityMapConverter<pcl::PointXYZI> disparityMapConverter;
+    disparityMapConverter.setBaseline(0.78f);
+    disparityMapConverter.setFocalLength(368.5f);
+    disparityMapConverter.setImageCenterX (536.0f);
+    disparityMapConverter.setImageCenterY (712.0f);
+    disparityMapConverter.setDisparityThresholdMin(15.0f);
+    disparityMapConverter.setImage (left_image);
+    // Disparity map of the scene.
+    disparityMapConverter.loadDisparityMap (disparity, 1072, 1424);
+    disparityMapConverter.compute(*cloud);
+    return cloud;
+}
 

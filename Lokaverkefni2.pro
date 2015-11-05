@@ -1,4 +1,3 @@
-
 #-------------------------------------------------
 #
 # Project created by QtCreator 2015-09-25T20:04:49
@@ -19,7 +18,13 @@ SOURCES += main.cpp\
     stereocalibrate.cpp \
     stereoscopicimage.cpp \
     convert.cpp \
-    pclfilters.cpp
+    pclfilters.cpp \
+    visualizer.cpp \
+    imageprocessing.cpp \
+    opencvutilities.cpp \
+    point_2d.cpp \
+    test.cpp \
+    reprojectimageto3d.cpp
 
 HEADERS  += mainwindow.h \
     dataholder.h \
@@ -27,7 +32,13 @@ HEADERS  += mainwindow.h \
     stereoscopicimage.h \
     defines.h \
     convert.h \
-    pclfilters.h
+    pclfilters.h \
+    visualizer.h \
+    imageprocessing.h \
+    opencvutilities.h \
+    point_2d.h \
+    test.h \
+    reprojectimageto3d.h
 
 FORMS    += mainwindow.ui
 
@@ -38,7 +49,9 @@ INCLUDEPATH += C:/msys64/home/kristinn/vtk/build2/install/include/vtk-6.3
 INCLUDEPATH += C:/msys64/home/kristinn/cloudstuff/pl-build/install/include/pcl-1.8
 INCLUDEPATH += C:/msys64/mingw32/include/eigen3
 INCLUDEPATH += C:/msys64/home/kristinn/cloudstuff/flann-1.8.4-src/build/install/include
-
+INCLUDEPATH += C:/msys64/mingw32/include/json
+INCLUDEPATH += C:/msys64/mingw32/include/glib-2.0/
+INCLUDEPATH += C:/msys64/mingw32/lib/glib-2.0/include/
 win32: LIBS += -LC:/msys64/home/kristinn/vtk/build2/install/lib \
                -LC:/msys64/home/kristinn/cloudstuff/pl-build/install/lib \
                -LC:/msys64/home/kristinn/opencv/build/install/x86/mingw/lib \
@@ -138,4 +151,8 @@ win32: LIBS += -LC:/msys64/home/kristinn/vtk/build2/install/lib \
                 -lvtkzlib-6.3 \
                 -lboost_system-mt \
                 -lboost_thread-mt \
-                -lboost_filesystem-mt
+                -lboost_filesystem-mt \
+                -ljsoncpp \
+                #-ljson-glib-1.0-0\
+                -lexiv2 \
+                -llensfun

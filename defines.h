@@ -1,6 +1,6 @@
 #ifndef DEFINES
 #define DEFINES
 #define CALIBFOLDERFIXED "../Lokaverkefni2/myndir/"
-#define CALIBFOLDER "C:/Users/Notandi/Pictures/kula_calib_myndir2/"
+#define CALIBFOLDER "C:/Users/kristinn/Pictures/kula_calib_myndir/"
 #endif // DEFINES
 

@@ -6,6 +6,11 @@
 #include <opencv2/core/core.hpp>
 #include <string>
 #include <iostream>
+#include <pcl/surface/poisson.h>
+#include <pcl/surface/boost.h>
+#include <pcl/features/integral_image_normal.h>
+#include <pcl/TextureMesh.h>
+#include <pcl/surface/texture_mapping.h>
 //#include "pclwindow.h"
 #include "visualizer.h"
 #include <pcl/common/common_headers.h>
@@ -43,6 +48,7 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl/surface/gp3.h>
+#include <pcl/point_cloud.h>
 #include <pcl/io/vtk_io.h>
 #include <pcl/visualization/pcl_visualizer.h>
 #include <boost/thread/thread.hpp>
@@ -54,6 +60,8 @@
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/filters/voxel_grid.h>
 #include "visualizer.h"
+#include <pcl/surface/mls.h>
+#include <pcl/stereo/disparity_map_converter.h>
 class Convert
 {
 public:
@@ -62,6 +70,9 @@ public:
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr matToCloud(cv::Mat rgb,cv::Mat disp,cv::Mat Q,pcl::PointCloud<pcl::PointXYZRGB>::Ptr Cloud);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr SOR_filter(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
     pcl::PolygonMesh triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr curveNormals(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
+    pcl::PointCloud<pcl::PointXYZI>::Ptr disparityToPointCloud(std::string disparity);
+
 
 };
 

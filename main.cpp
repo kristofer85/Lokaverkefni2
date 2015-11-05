@@ -13,6 +13,7 @@
 #include <iostream>
 #include <string>
 #include <iostream>
+#include "reprojectimageto3d.h"
 //#include "pclwindow.h"
 #include <pcl/common/common_headers.h>
 #include <pcl/io/pcd_io.h>
@@ -32,7 +33,9 @@
 #include "dataholder.h"
 #include <boost/thread/thread.hpp>
 #include "visualizer.h"
-
+#include "test.h"
+#include "point_2d.h"
+#include "imageprocessing.h"
 
 using namespace cv;
 using namespace std;
@@ -40,115 +43,79 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    StereoCalibrate cc;
-    cc.findAndDrawChessBoardCorners();
 
-    // Read multiple image for stereo calibration &
-    // findChessBoard corners
-    //cc.findAndDrawChessBoardCorners("Y.xml");
-    cc.CalibrateStereoCamera();
-    //cc.initUndistort();
-
-
-    //cc.findAndDrawChessBoardCorners("X.xml");
-
-
-
-
-
-
-    //cc.rectifyCamera();
-    StereoScopicImage ssi;
-    ssi.rectifyCamera();
-    ssi.disparityMap();
-
-
-
-    //ssi.disparityMap("Y.xml");
-/*
-    //Convert
-    //untill sterio calibration is complete use these test images
-    Mat img_rgb = imread("C:/Users/Notandi/Pictures/Screenshots/left.png", CV_LOAD_IMAGE_COLOR);
-    Mat img_disparity = imread("C:/Users/Notandi/Pictures/Screenshots/disp.jpg", CV_LOAD_IMAGE_GRAYSCALE);
-    Convert con(img_rgb,img_disparity);
-*/
+ //StereoCalibrate cc;
+   ////     //cc.findAndDrawChessBoardCorners();
+   //    cc.findAndDrawChessBoardCorners("Y.xml");
+   ////     //// Read multiple image for stereo calibration &
+   ////     //// findChessBoard corners
+   ////     ////cc.findAndDrawChessBoardCorners("Y.xml");
+   //  cc.CalibrateStereoCamera();
+   //
+   //     StereoScopicImage ssi;
+   //     ssi.rectifyCamera();
+//cc.initUndistort();
+   //     //
+   //     //
+   //     //
+   //     //
+        //
+        //
+        //
+        //
+        //
+        ////cc.rectifyCamera();
+        //
+        //ssi.rectifyCamera();
+        ////ssi.disparityMap();
 
 
-    //ssi.disparityMap("X.xml");
+
+        //ssi.disparityMap("Y.xml");
 
 
-    //ssi.disparityMap("X.xml");
-
-    //Convert
-
-    // declare classes
     Convert utilities;
     Visualizer visualizer;
     DataHolder dataHolder;
-
     // PCL variables & other temp location*****
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr mainCloud (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr triangulate_cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
-    boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr normal (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::PolygonMesh triangles;
-
+    //dataHolder.fs1.open("stereoCalibration.yml", FileStorage::READ);
     Mat Q;
     string file = "Q.xml";  // moved files to debug & release folder "relative path"
-    FileStorage fs(file, cv::FileStorage::READ);
-    fs["Q"] >> Q;                                           //Load Matrix Q
-    Mat img_rgb = imread("left.png", CV_LOAD_IMAGE_COLOR);              // moved files to debug & release folder "relative path"
-    Mat img_disparity = imread("disp.jpg", CV_LOAD_IMAGE_GRAYSCALE);    // moved files to debug & release folder "relative path"
-
-    // PCL variables & other temp location*****
-
+    FileStorage fs = FileStorage(file, FileStorage::READ);
+    fs["Q"] >> Q;                                            //Load Matrix Q
+    //ReprojectImageTo3d rProj3d;
+    //Mat d = imread("d.jpg",CV_LOAD_IMAGE_GRAYSCALE);
+    //Mat outDisp;
+    //rProj3d.reproject(d,Q,outDisp);
+    //string f = "testReproject.txt";
+    //rProj3d.save(outDisp,f);
+    Mat img_rgb = imread("c.jpg", CV_LOAD_IMAGE_COLOR);              // moved files to debug & release folder "relative path"
+    Mat img_disparity = imread("d2.jpg", CV_LOAD_IMAGE_GRAYSCALE);    // moved files to debug & release folder "relative path"
     /*point cloud 2 xyzrgb, filers,triangulate*
      *  point cloud from rgb image, depth     *
      *  image & an empty point cloud of       *
      *  pointXYZRGB.                          *
      *  Point cloud filters applied           *
      *****************************************/
-
+    //ImageProcessing j;
+    //j.selectContinuousPixel(0,0,img_disparity);
 
     mainCloud = utilities.matToCloud(img_rgb,img_disparity,Q,mainCloud);
     cloud_filtered = utilities.SOR_filter(mainCloud);
-    pcl::PCDWriter writer;
-    //writer.write<pcl::PointXYZRGB> ("triangulate.pcd", *cloud_filtered, false);
-    pcl::io::savePCDFileBinaryCompressed ("triangulate.pcd", *cloud_filtered);
-    pcl::io::loadPCDFile("triangulate.pcd", *mainCloud);
-    triangles = utilities.triangulate(mainCloud);
-
-
-    /***********viewport setup******************
-     * default viewport is from left side.     *
-     * The right side can be found by          *
-     * mirroring the left camera over the left *
-     * camera Y-up axis & the left camera      *
-     * view-Z axis with an offset of half the  *
-     * distance in X-axis between the mirrors  *
-     ******************************************/
-    /****viewport is split screen not useful****
-     *******************************************/
-
-
-
-
-
+    //
+    triangles = utilities.triangulate(cloud_filtered);
+    //normal = utilities.curveNormals(mainCloud);
 
     if(visualizer.displayPoly == false && visualizer.displayPoints == true)
         visualizer.viewer = visualizer.displayPointCloudColor(cloud_filtered);      // view point cloud
     else if(visualizer.displayPoly == true && visualizer.displayPoints == false)
-    {
-        pcl::io::saveVTKFile("triangulation.vtk", triangles);                   // save polygon Mesh to file
         visualizer.viewer = visualizer.displayPolyMesh(cloud_filtered,triangles); // view polyMesh
-    }
     else
-    {
-        // view point cloud with objects(used for locating the point cloud
         visualizer.viewer = visualizer.displayLocatorObject(cloud_filtered);
-    }
-
-
 
     /***********Main render loop**************
      *  Loop untils pcl viewer is turned off *
@@ -159,8 +126,5 @@ int main(int argc, char *argv[])
       //visualizer.viewer->saveScreenshot("screenshot.png");
       boost::this_thread::sleep (boost::posix_time::microseconds (100000));
     }
-
-
-
     return 0;
 }

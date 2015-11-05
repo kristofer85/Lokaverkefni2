@@ -24,6 +24,7 @@ public:
     int board_h;
     cv::Size board_sz;
     int board_n;
+    double patternSize;
     std::vector<std::vector<cv::Point3f> > object_points,object_points1,object_points2;
     std::vector<std::vector<cv::Point2f> > imagePoints1, imagePoints2;
     std::vector<cv::Point2f> corners1, corners2;

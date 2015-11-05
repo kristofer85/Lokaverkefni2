@@ -3,8 +3,8 @@ using namespace pcl;
 using namespace pcl::visualization;
 Visualizer::Visualizer()
 {
-    displayPoly = false;
-    displayPoints = true;
+    displayPoly = true;
+    displayPoints = false;
 }
 
 /***********Display point cloud***********
@@ -17,7 +17,7 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> Visualizer::displayPointClo
     pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(cloud);
     viewer->addPointCloud<pcl::PointXYZRGB> (cloud, rgb, "reconstruction");
     viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "reconstruction");
-    viewer->addCoordinateSystem ( 1.0 );
+    viewer->addCoordinateSystem ( 5.0 );
     //viewer->initCameraParameters ();
     return (viewer);
 }
@@ -32,8 +32,22 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> Visualizer::displayPolyMesh
     viewer->setBackgroundColor (0, 0, 0);
     viewer->addPolygonMesh(triangles,"triangulation.vtk");
     viewer->addCoordinateSystem ( 1.0 );
-    viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 1, 0, 0,"normals");
-    //viewer->initCameraParameters ();
+    viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 1, 0, 0,"cloud");
+    viewer->setCameraPosition(-0.342994, 0.593376, -35.3964, 1.8, 2.6, 0.0, 0.0,-1.0, 1,0 );
+    viewer->getRenderWindow();
+    viewer->setSize(524,788);
+    viewer->saveCameraParameters("frameCamera.cam");
+    viewer->saveScreenshot("beginingPose.png");
+    viewer->spinOnce(100);
+    viewer->saveScreenshot("switchCamposition.png");
+    boost::this_thread::sleep (boost::posix_time::microseconds (100000));
+    viewer->setCameraPosition(12.6659, -0.934055, -34.3321, 8.76541, 1.61619, 0.843691, -0.014327, -0.997393, 0.0707224 );
+    viewer->saveCameraParameters("frameCamera2.cam");
+    viewer->saveScreenshot("beginingPose2.png");
+    viewer->spinOnce(100);
+    viewer->saveScreenshot("switchCamposition2.png");
+    boost::this_thread::sleep (boost::posix_time::microseconds (100000));
+
     return (viewer);
 }
 

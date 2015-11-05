@@ -15,6 +15,7 @@ using namespace cv::ximgproc;
 StereoCalibrate::StereoCalibrate()
 {
     //fs1 = FileStorage("stereoCalibration.yml", FileStorage::WRITE);
+    patternSize = 1.8;
 }
 
 
@@ -25,13 +26,14 @@ void StereoCalibrate::findAndDrawChessBoardCorners(string filename)
     board_h = 10;
     board_sz = Size(board_w, board_h);
     board_n = board_w*board_h;
-    for (int j=0; j<board_n; j++)
+    for (int i=0; i<board_h; i++)
     {
-        obj.push_back(Point3f(j/board_w, j%board_w, 0.0f));
+        for (int j=0; j<board_w; j++)
+        {
+            obj.push_back(Point3f(i * patternSize, j *patternSize, 0.0f));
+        }
     }
 
-    //namedWindow( "Left Window",WINDOW_NORMAL| WINDOW_KEEPRATIO );
-    //namedWindow( "Right Window",WINDOW_NORMAL| WINDOW_KEEPRATIO );
     cout << endl << "Reading calib pics: " << endl;
     FileStorage fs;
     fs.open(filename, FileStorage::READ);
@@ -54,29 +56,18 @@ void StereoCalibrate::findAndDrawChessBoardCorners(string filename)
     FileNodeIterator it = n.begin(), it_end = n.end(); // Go through the node
     for (; it != it_end; ++it)
     {
-        //reed sterio pic from file
-        //cout << (string)*it << endl;
         bleh = CALIBFOLDERFIXED;
-        //bleh = CALIBFOLDER;
         bleh.append((string)*it);
-        //cout << bleh << endl;
         fullImg = imread(bleh,IMREAD_COLOR);
         pyrDown(fullImg,fullImg,Size(fullImg.cols/2,fullImg.rows/2));
         //split sterio pic into two images
         Size imSize = fullImg.size();
 
         img1 = fullImg(Range(0, imSize.height),Range(0, imSize.width/2)).clone();
-
+        imwrite("leftColor.png",img1);
         img2 = fullImg(Range(0, imSize.height),Range(imSize.width/2, imSize.width)).clone();
+        imwrite("rightColor.png",img2);
 
-        /*
-        Mat img1 = fullImg(Range(300, imSize.height-800),Range(650, imSize.width/2)).clone();
-
-        Mat img2 = fullImg(Range(300, imSize.height-800),Range(imSize.width/2, imSize.width-650)).clone();
-        */
-        std::cout << "full width =" << fullImg.size().width << std::endl;
-        std::cout << "left width = " << img1.size().width << std::endl;
-        std::cout << "right width = " << img2.size().width << std::endl;
         imgSize = img1.size();
         int success = 0, k = 0;
         bool found1 = false, found2 = false;
@@ -88,36 +79,21 @@ void StereoCalibrate::findAndDrawChessBoardCorners(string filename)
 
             //found1 = findChessboardCorners(img1, board_sz, corners1, CV_CALIB_CB_ADAPTIVE_THRESH  + CV_CALIB_CB_FAST_CHECK + CV_CALIB_CB_NORMALIZE_IMAGE + CV_CALIB_CB_FILTER_QUADS);
             //found2 = findChessboardCorners(img2, board_sz, corners2, CV_CALIB_CB_ADAPTIVE_THRESH  + CV_CALIB_CB_FAST_CHECK + CV_CALIB_CB_NORMALIZE_IMAGE + CV_CALIB_CB_FILTER_QUADS);
-            found1 = findChessboardCorners(img1, board_sz, corners1, CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_FILTER_QUADS);
-            found2 = findChessboardCorners(img2, board_sz, corners2, CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_FILTER_QUADS);
+            found1 = findChessboardCorners(img1, board_sz, corners1, CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_NORMALIZE_IMAGE);
+            found2 = findChessboardCorners(img2, board_sz, corners2, CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_NORMALIZE_IMAGE);
 
             if (found1)
             {
-                cornerSubPix(gray1, corners1, Size(11, 11), Size(-1, -1), TermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.1));
+                cornerSubPix(gray1, corners1, Size(11, 11), Size(-1, -1), TermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.01));
                 drawChessboardCorners(gray1, board_sz, corners1, found1);
             }
 
             if (found2)
             {
-                cornerSubPix(gray2, corners2, Size(11, 11), Size(-1, -1), TermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.1));
+                cornerSubPix(gray2, corners2, Size(11, 11), Size(-1, -1), TermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.01));
                 drawChessboardCorners(gray2, board_sz, corners2, found2);
             }
-            //for debuging
-/*
-            cout << (string)*it << endl;
-            imshow("Left Window", gray1);
-            imshow("Right Window", gray2);
 
-            k = waitKey(10);
-            if (found1 && found2)
-            {
-                k = waitKey(0);
-            }
-            if (k == 27)
-            {
-                break;
-            }
-*/
             if (found1 !=0 && found2 != 0)
             {
                 //cout << "found" << endl;
@@ -207,22 +183,28 @@ void StereoCalibrate::findAndDrawChessBoardCorners()
             }
         }
     }
+
 }
 
 void StereoCalibrate::CalibrateStereoCamera()
 {
     cout << "starting camera calibration" << endl;
-    CM1 = Mat::zeros(3, 3, CV_64FC1);
-    CM2 = Mat::zeros(3, 3, CV_64FC1);
+
+    CM1 = Mat(3, 3, CV_64FC1);
+    CM2 = Mat(3, 3, CV_64FC1);
+    setIdentity(CM1);
+    setIdentity(CM2);
+    cout << CM1 << endl;
+    cout << CM2 << endl;
     D1 = Mat::zeros(8, 1, CV_64F);
     D2 = Mat::zeros(8, 1, CV_64F);
     Mat D11 = Mat::zeros(8, 1, CV_64F);
     Mat D22 = Mat::zeros(8, 1, CV_64F);
+    T = Mat(3, 1, CV_64FC1);
 
     //CM1 = getDefaultNewCameraMatrix(CM1,imgSize,false);
     //CM2 = getDefaultNewCameraMatrix(CM2,imgSize,false);
-    cout << "starting CM1" << CM1 << endl;
-    cout << "starting CM1" << CM2 << endl;
+
 
     //string img1Path = CALIBFOLDER;
     //img1Path.append("leftChessbord.png");
@@ -238,53 +220,54 @@ void StereoCalibrate::CalibrateStereoCamera()
     //img1 = fullImg(Range(0, imSize.height),Range(0, imSize.width/2)).clone();
     Size imageSize = imgSize;
 
-      double apertureWidth = 4.0;
-      double apertureHeight = 4.0;
-      double fieldOfViewX;
-      double fieldOfViewY;
-      double focalLength = 25.0;
-      cv::Point2d principalPoint;
-      double aspectRatio;
-      double fx = (imageSize.width*25.0)/23.6;
-      double fy = (imageSize.height*25.0)/15.8;
-      CM1.at<double>(0,0) = fx;
-      //CM1.at<double>(0,0) = 10.0;
-      CM1.at<double>(1,1) = fy;
-      //CM1.at<double>(1,1) = 5.0;
-      CM1.at<double>(0,2) = imageSize.width/2;
-      CM1.at<double>(1,2) = imageSize.height/2;
-      CM1.at<double>(2,2) = 1;
+      //double apertureWidth = 4.0;
+      //double apertureHeight = 4.0;
+      //double fieldOfViewX;
+      //double fieldOfViewY;
+      //double focalLength = 25.0;
+      //cv::Point2d principalPoint;
+      //double aspectRatio;
+      //double fx = (imageSize.width*25.0)/23.6;
+      //double fy = (imageSize.height*25.0)/15.8;
+      //CM1.at<double>(0,0) = fx;
+      ////CM1.at<double>(0,0) = 10.0;
+      //CM1.at<double>(1,1) = fy;
+      ////CM1.at<double>(1,1) = 5.0;
+      //CM1.at<double>(0,2) = imageSize.width/2;
+      //CM1.at<double>(1,2) = imageSize.height/2;
+      //CM1.at<double>(2,2) = 1;
+      //
+      //CM2.at<double>(0,0) = fx;
+      ////CM1.at<double>(0,0) = 10.0;
+      //CM2.at<double>(1,1) = fy;
+      ////CM1.at<double>(1,1) = 5.0;
+      //CM2.at<double>(0,2) = imageSize.width/2;
+      //CM2.at<double>(1,2) = imageSize.height/2;
+      //CM2.at<double>(2,2) = 1;
+      //cout << "starting CM1" << CM1 << endl;
+      //cout << "starting CM1" << CM2 << endl;
 
-      CM2.at<double>(0,0) = fx;
-      //CM1.at<double>(0,0) = 10.0;
-      CM2.at<double>(1,1) = fy;
-      //CM1.at<double>(1,1) = 5.0;
-      CM2.at<double>(0,2) = imageSize.width/2;
-      CM2.at<double>(1,2) = imageSize.height/2;
-      CM2.at<double>(2,2) = 1;
-      cout << CM1 << endl;
-      cout << CM2 << endl;
-
-      DataHolder dataHolder2;
-      dataHolder2.fs1 = FileStorage("cam.yml", FileStorage::WRITE);
-      dataHolder2.fs1 << "CM1 before" << CM1;
-      dataHolder2.fs1 << "CM2 before" << CM2;
-      //calibrationMatrixValues(CM1, imageSize, apertureWidth, apertureHeight, fieldOfViewX, fieldOfViewY, focalLength, principalPoint, aspectRatio);
-      //calibrationMatrixValues(CM2, imageSize, apertureWidth, apertureHeight, fieldOfViewX, fieldOfViewY, focalLength, principalPoint, aspectRatio);
-
-      dataHolder2.fs1 << "CM1 after" << CM1;
-      dataHolder2.fs1 << "CM2 after" << CM2;
+      DataHolder dataHolder;
+      dataHolder.fs1 = FileStorage("stereoCalibration.yml", FileStorage::WRITE);
+      //dataHolder.fs1 << "CM1" << CM1;
+      //dataHolder.fs1 << "CM2" << CM2;
+      ////calibrationMatrixValues(CM1, imageSize, apertureWidth, apertureHeight, fieldOfViewX, fieldOfViewY, focalLength, principalPoint, aspectRatio);
+      ////calibrationMatrixValues(CM2, imageSize, apertureWidth, apertureHeight, fieldOfViewX, fieldOfViewY, focalLength, principalPoint, aspectRatio);
+      //
+      //dataHolder.fs1 << "CM1" << CM1;
+      //dataHolder.fs1 << "CM2" << CM2;
 
     vector<Mat> rvecs,rvecs2, tvecs,tvecs2;
-    calibrateCamera(object_points, imagePoints1,imgSize,CM1, D11,rvecs,tvecs,CV_CALIB_ZERO_TANGENT_DIST |CV_CALIB_USE_INTRINSIC_GUESS);
-    calibrateCamera(object_points, imagePoints2,imgSize,CM2, D22,rvecs2,tvecs2,CV_CALIB_ZERO_TANGENT_DIST |CV_CALIB_USE_INTRINSIC_GUESS );
+    //calibrateCamera(object_points, imagePoints1,imgSize,CM1, D11,rvecs,tvecs,CV_CALIB_ZERO_TANGENT_DIST |CV_CALIB_USE_INTRINSIC_GUESS);
+    //calibrateCamera(object_points, imagePoints2,imgSize,CM2, D22,rvecs2,tvecs2,CV_CALIB_ZERO_TANGENT_DIST |CV_CALIB_USE_INTRINSIC_GUESS );
     //calibrateCamera(object_points, imagePoints1,imgSize,CM2, D11,rvecs,tvecs,CV_CALIB_ZERO_TANGENT_DIST |CV_CALIB_USE_INTRINSIC_GUESS);
     //calibrateCamera(object_points, imagePoints2,imgSize,CM1, D22,rvecs2,tvecs2,CV_CALIB_ZERO_TANGENT_DIST |CV_CALIB_USE_INTRINSIC_GUESS );
 
-    stereoCalibrate(object_points, imagePoints1, imagePoints2,CM1, D1, CM2, D2, imgSize, R, T, E, F, CV_CALIB_FIX_INTRINSIC,cvTermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS, 100, 1e-5));
-    //stereoCalibrate(object_points, imagePoints2, imagePoints1,CM1, D1, CM2, D2, imgSize, R, T, E, F, CV_CALIB_FIX_INTRINSIC,cvTermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS, 100, 1e-5));
 
-
+    stereoCalibrate(object_points, imagePoints1, imagePoints2,CM1, D1, CM2, D2, imgSize, R, T, E, F,  CV_CALIB_FIX_ASPECT_RATIO +CV_CALIB_ZERO_TANGENT_DIST +CV_CALIB_SAME_FOCAL_LENGTH,cvTermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS, 100, 1e-5));
+    stereoCalibrate(object_points, imagePoints2, imagePoints1,CM1, D1, CM2, D2, imgSize, R, T, E, F, CV_CALIB_FIX_INTRINSIC,cvTermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS, 100, 1e-5));
+    //
+    //
     //stereoCalibrate(object_points, imagePoints1, imagePoints2,CM1, D1, CM2, D2, img1.size(), R, T, E, F, CV_CALIB_USE_INTRINSIC_GUESS,cvTermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS, 100, 1e-5));
       //stereoCalibrate(object_points, imagePoints1, imagePoints2,CM1, D1, CM2, D2, img1.size(), R, T, E, F,CV_CALIB_SAME_FOCAL_LENGTH | CV_CALIB_ZERO_TANGENT_DIST | CV_CALIB_FIX_ASPECT_RATIO | CV_CALIB_FIX_INTRINSIC ,cvTermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS, 100, 1e-5));
       //stereoCalibrate(object_points, imagePoints1, imagePoints2,CM1, D1, CM2, D2, img1.size(), R, T, E, F,CV_CALIB_SAME_FOCAL_LENGTH ,cvTermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS, 100, 1e-5));
@@ -295,11 +278,11 @@ void StereoCalibrate::CalibrateStereoCamera()
 //*******************************
 // ToDo Write Data to DATA_HOLDER
 //*******************************
-    DataHolder dataHolder;
+
     dataHolder.fs1 = FileStorage("stereoCalibration.yml", FileStorage::WRITE);
     dataHolder.fs1 << "CM1" << CM1;
-    dataHolder.fs1 << "CM2" << CM2;
     dataHolder.fs1 << "D1" << D1;
+    dataHolder.fs1 << "CM2" << CM2;
     dataHolder.fs1 << "D2" << D2;
     dataHolder.fs1 << "R" << R;
     dataHolder.fs1 << "T" << T;
@@ -370,17 +353,26 @@ void StereoCalibrate::initUndistort()
     cout << "starting remaping" << endl;
     string bleh = CALIBFOLDERFIXED;
     //string bleh = CALIBFOLDER;
-    bleh.append("calib1_fixed.JPG");
+    bleh.append("calib5_fixed.JPG");
     //bleh.append("DSC_0025.JPG");
     Mat fullImg = imread(bleh,IMREAD_COLOR);
-    pyrDown(fullImg,fullImg,Size(fullImg.cols/2,fullImg.rows/2));
+    Mat img1 = fullImg(Rect(0,0,2144,2848));
+    Mat img2 = fullImg(Rect(2144,0,2144,2848));
+    Mat i1;
+    Mat i2;
+    resize(img1, img1, Size(), 0.5, 0.5);
+    resize(img2, img2, Size(), 0.5, 0.5);
+    //pyrDown(fullImg,fullImg,Size(fullImg.cols/2,fullImg.rows/2));
     //split sterio pic into two images
     Size imSize = fullImg.size();
 
-    Mat img1 = fullImg(Range(0, imSize.height),Range(0, imSize.width/2)).clone();
-
-    Mat img2 = fullImg(Range(0, imSize.height),Range(imSize.width/2, imSize.width)).clone();
+    //Mat img1 = fullImg(Range(0, imSize.height),Range(0, imSize.width/2)).clone();
+    //imwrite("leftColor.png",img1);
+    //Mat img2 = fullImg(Range(0, imSize.height),Range(imSize.width/2, imSize.width)).clone();
+    //imwrite("rightColor.png",img2);
     /*
+
+
     Mat img1 = fullImg(Range(300, imSize.height-800),Range(650, imSize.width/2)).clone();
 
     Mat img2 = fullImg(Range(300, imSize.height-800),Range(imSize.width/2, imSize.width-650)).clone();
@@ -388,19 +380,25 @@ void StereoCalibrate::initUndistort()
     //std::cout << "full width =" << fullImg.size().width << std::endl;
     //std::cout << "left width = " << img1.size().width << std::endl;
     //std::cout << "right width = " << img2.size().width << std::endl;
+   imwrite("leftColorTest.png",img1);
+   imwrite("rightColorTest.png",img2);
+   // Mat m1;
+   // Mat m2;
+   // resize(img1,m1,Size( 0.25, 0.25));
+   // resize(img2,m2,Size( 0.25, 0.25));
     imgSize = img1.size();
     cout << "CM1"<< CM1 << endl;
     cout << "CM2"<< CM2 << endl;
-    stereoRectify(CM1, D1, CM2, D2, img1.size(), R, T, R1, R2, P1, P2, Q,CV_CALIB_ZERO_DISPARITY);
+    //stereoRectify(CM1, D1, CM2, D2, img1.size(), R, T, R1, R2, P1, P2, Q,CV_CALIB_ZERO_DISPARITY);
 
-    initUndistortRectifyMap(CM1, D1, R1, P1, img1.size(), CV_32FC1, map1x, map1y);
-    initUndistortRectifyMap(CM2, D2, R2, P2, img1.size(), CV_32FC1, map2x, map2y);
-
-    remap(img1, imgU1, map1x, map1y, INTER_CUBIC, BORDER_CONSTANT, Scalar());
-    remap(img2, imgU2, map2x, map2y, INTER_CUBIC, BORDER_CONSTANT, Scalar());
-    namedWindow("image1",WINDOW_NORMAL| WINDOW_KEEPRATIO);
-    namedWindow("image2",WINDOW_NORMAL| WINDOW_KEEPRATIO);
-    namedWindow("disp",WINDOW_NORMAL | WINDOW_KEEPRATIO);
+    //initUndistortRectifyMap(CM1, D1, R1, P1, img1.size(), CV_32FC1, map1x, map1y);
+    //initUndistortRectifyMap(CM2, D2, R2, P2, img1.size(), CV_32FC1, map2x, map2y);
+    //
+    //remap(img1, imgU1, map1x, map1y, INTER_CUBIC, BORDER_CONSTANT, Scalar());
+    //remap(img2, imgU2, map2x, map2y, INTER_CUBIC, BORDER_CONSTANT, Scalar());
+    //namedWindow("image1",WINDOW_NORMAL| WINDOW_KEEPRATIO);
+    //namedWindow("image2",WINDOW_NORMAL| WINDOW_KEEPRATIO);
+    //namedWindow("disp",WINDOW_NORMAL | WINDOW_KEEPRATIO);
 //    imshow("image1", imgU1);
  //   imshow("image2", imgU2);
     /*
@@ -414,10 +412,11 @@ void StereoCalibrate::initUndistort()
     Mat g1,g2,disp,disp8,disp12;
     cvtColor(img1, g1, CV_BGR2GRAY);
     cvtColor(img2, g2, CV_BGR2GRAY);
-    imshow("image1", g1);
-    imshow("image2", g2);
+    //imshow("image1", g1);
+    //imshow("image2", g2);
 
     cv::Ptr<cv::StereoSGBM> sgbm = cv::StereoSGBM::create(0,16,3);
+    //cv::Ptr<cv::StereoBM> bm = cv::StereoBM::create();
     int sgbmWinSize = 3;
                   sgbm->setBlockSize(sgbmWinSize);
 
@@ -427,40 +426,40 @@ void StereoCalibrate::initUndistort()
     sgbm->setDisp12MaxDiff(1);
     sgbm->setUniquenessRatio(2);
     //sgbm->setMode(StereoSGBM::MODE_SGBM);
-    sgbm->setMode(StereoSGBM::MODE_SGBM_3WAY);
+    sgbm->setMode(StereoSGBM::MODE_SGBM);
 
     sgbm->setMinDisparity(0);
-    sgbm->setNumDisparities(1920);
+    sgbm->setNumDisparities(320);
     //sgbm->setP1(600);
     //sgbm->setP2(2400);
+    sgbm->setP1(8*cn*sgbmWinSize*sgbmWinSize);
+    sgbm->setP2(32*cn*sgbmWinSize*sgbmWinSize);
     //sgbm->setP1(8*cn*sgbmWinSize*sgbmWinSize);
     //sgbm->setP2(32*cn*sgbmWinSize*sgbmWinSize);
-    sgbm->setP1(24*cn*sgbmWinSize*sgbmWinSize);
-    sgbm->setP2(96*cn*sgbmWinSize*sgbmWinSize);
-    sgbm->setPreFilterCap(192);
+    sgbm->setPreFilterCap(5);
     sgbm->setSpeckleRange(2);
-    sgbm->setSpeckleWindowSize(10);
+    sgbm->setSpeckleWindowSize(1);
 
     sgbm->compute(g1, g2, disp);
 
     //disp.convertTo(disp12, CV_8U, 255/(960*16));
-    normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);
+    //normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);
 
-    string img1Path = CALIBFOLDER;
+    string img1Path = CALIBFOLDERFIXED;
     img1Path.append("disp5.jpg");
     imwrite(img1Path,disp);
-    img1Path = CALIBFOLDER;
+    img1Path = CALIBFOLDERFIXED;
     img1Path.append("disp58.jpg");
     imwrite(img1Path,disp8);
     Mat raw_disp_vis2;
     getDisparityVis(disp,raw_disp_vis2,1.0);
 
-    imshow("disp2", disp8);
-    imshow("disp", raw_disp_vis2);
+    //imshow("disp2", disp8);
+    //imshow("disp", raw_disp_vis2);
 
 
     //test filter
-/*
+
     Ptr<DisparityWLSFilter> wls_filter;
 
 
@@ -471,6 +470,7 @@ void StereoCalibrate::initUndistort()
         conf_map = Scalar(255);
         Rect ROI;
 
+
         double matching_time, filtering_time;
         left_for_matcher  = g1.clone();
         right_for_matcher = g2.clone();
@@ -478,9 +478,9 @@ void StereoCalibrate::initUndistort()
         String filter = "wls_conf";
 
 
-            int max_disp = 384;
-            double lambda = 8000.0;
-            double sigma  = 1.5;
+            int max_disp = 320;
+            double lambda = 240.0;
+            double sigma  = 1.0 ;
             double vis_mult = 1.0;
             int wsize = 3;
 
@@ -491,8 +491,8 @@ void StereoCalibrate::initUndistort()
         left_matcher->setP2(96*wsize*wsize);
         left_matcher->setPreFilterCap(5);
         left_matcher->setSpeckleRange(2);
-        left_matcher->setSpeckleWindowSize(10);
-        left_matcher->setMinDisparity(-192);
+        left_matcher->setSpeckleWindowSize(1);
+        left_matcher->setMinDisparity(0);
         left_matcher->setMode(StereoSGBM::MODE_SGBM_3WAY);
         wls_filter = cv::ximgproc::createDisparityWLSFilter(left_matcher);
 
@@ -522,10 +522,10 @@ void StereoCalibrate::initUndistort()
 
         normalize(left_disp, disp8, 0, 255, CV_MINMAX, CV_8U);
 
-                namedWindow("left1", WINDOW_NORMAL| WINDOW_KEEPRATIO);
-                        imshow("left1", disp8);
-                        namedWindow("right1", WINDOW_NORMAL| WINDOW_KEEPRATIO);
-                        imshow("right1", img2);
+                //namedWindow("left1", WINDOW_NORMAL| WINDOW_KEEPRATIO);
+                //        imshow("left1", disp8);
+                //        namedWindow("right1", WINDOW_NORMAL| WINDOW_KEEPRATIO);
+                //        imshow("right1", img2);
 
 
 
@@ -539,14 +539,11 @@ void StereoCalibrate::initUndistort()
                         namedWindow("filtered disparity", WINDOW_NORMAL| WINDOW_KEEPRATIO);
                         imshow("filtered disparity", filtered_disp_vis);
 
-                        string img1Path = CALIBFOLDER;
+                        img1Path = CALIBFOLDERFIXED;
                         img1Path.append("disp5.jpg");
-                        imwrite(img1Path,filtered_disp_vis);
-*/
+                        imwrite("img1Path.jpg",filtered_disp_vis);
     //end test filter
 
-    waitKey(0);
     destroyAllWindows();
 
 }
-

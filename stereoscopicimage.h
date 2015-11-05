@@ -16,8 +16,8 @@
 class StereoScopicImage
 {
 public:
-
-    cv::Ptr<cv::StereoSGBM> sgbm = cv::StereoSGBM::create(0,16,3);
+    DataHolder dataHolder;
+    //cv::Ptr<cv::StereoSGBM> sgbm = cv::StereoSGBM::create(0,16,3);
     StereoScopicImage();
     void rectifyCamera();
     void disparityMap();
