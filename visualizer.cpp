@@ -108,8 +108,8 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> Visualizer::displayLocatorO
   /*******Add shapes at cloud points*********
   *******************************************/
   //viewer->addLine<pcl::PointXYZRGB> (cloud->points[0],cloud->points[(cloud->size() - 1) + 38.7], "line");
-  viewer->addSphere (cloud->points[0], 0.4, 0.7, 0.7, 0.0, "sphere");
-  viewer->addSphere (cloud->points[(cloud->size() - 1)], 0.4, 0.7, 0.7, 0.0, "sphere2");
+  //viewer->addSphere (cloud->points[0], 0.4, 0.7, 0.7, 0.0, "sphere");
+  //viewer->addSphere(cloud->points[(cloud->size() - 1)], 0.4, 0.7, 0.7, 0.0, "sphere2");
 
   /*******Add shapes at other locations*********
   *******************************************/

@@ -24,7 +24,9 @@ SOURCES += main.cpp\
     opencvutilities.cpp \
     point_2d.cpp \
     test.cpp \
-    reprojectimageto3d.cpp
+    reprojectimageto3d.cpp \
+    utils.cpp \
+    depthmap.cpp
 
 HEADERS  += mainwindow.h \
     dataholder.h \
@@ -38,7 +40,9 @@ HEADERS  += mainwindow.h \
     opencvutilities.h \
     point_2d.h \
     test.h \
-    reprojectimageto3d.h
+    reprojectimageto3d.h \
+    utils.h \
+    depthmap.h
 
 FORMS    += mainwindow.ui
 
@@ -53,33 +57,35 @@ INCLUDEPATH += C:/msys64/mingw32/include/json
 INCLUDEPATH += C:/msys64/mingw32/include/glib-2.0/
 INCLUDEPATH += C:/msys64/mingw32/lib/glib-2.0/include/
 win32: LIBS += -LC:/msys64/home/kristinn/vtk/build2/install/lib \
-               -LC:/msys64/home/kristinn/cloudstuff/pl-build/install/lib \
-               -LC:/msys64/home/kristinn/opencv/build/install/x86/mingw/lib \
-                -lopencv_calib3d \
-                -lopencv_core300d \
-                -lopencv_features2d300d \
-                -lopencv_flann300d \
-                -lopencv_highgui300d \
-                -lopencv_imgproc300d \
-                -lopencv_hal300d \
-                -lopencv_imgcodecs300d \
-                -lopencv_objdetect300d \
-                -lopencv_photo300d \
-                -lopencv_stitching300d \
-                -lopencv_superres300d \
-                -lopencv_ts300d \
-                -lopencv_video300d \
-                -lopencv_videostab300d \
-                -lopencv_ml300d \
-                -lopencv_objdetect300d \
-                -lopencv_photo300d \
-                -lopencv_shape300d \
-                -lopencv_stitching300d \
-                -lopencv_superres300d \
-                -lopencv_videoio300d \
-                -lopencv_ximgproc300d \
-                -lopencv_bgsegm300d \
-                -lopencv_xfeatures2d300d \
+	       -LC:/msys64/home/kristinn/cloudstuff/pl-build/install/lib \
+	       -LC:/msys64/home/kristinn/opencv/build/install/x86/mingw/lib \
+		-lopencv_calib3d \
+		-lopencv_core300d \
+		-lopencv_features2d300d \
+		-lopencv_flann300d \
+		-lopencv_highgui300d \
+		-lopencv_imgproc300d \
+		-lopencv_hal300d \
+		-lopencv_ccalib300d \
+		-lopencv_imgcodecs300d \
+		-lopencv_objdetect300d \
+		-lopencv_photo300d \
+		-lopencv_stitching300d \
+		-lopencv_superres300d \
+		-lopencv_ts300d \
+		-lopencv_video300d \
+		-lopencv_videostab300d \
+		-lopencv_ml300d \
+		-lopencv_objdetect300d \
+		-lopencv_photo300d \
+		-lopencv_shape300d \
+		-lopencv_stitching300d \
+		-lopencv_superres300d \
+		-lopencv_videoio300d \
+		-lopencv_ximgproc300d \
+		-lopencv_bgsegm300d \
+		-lopencv_xfeatures2d300d \
+		-lopencv_stereo300d \
                 -lpcl_common \
                 -lpcl_visualization \
                 -lpcl_io \
@@ -151,8 +157,8 @@ win32: LIBS += -LC:/msys64/home/kristinn/vtk/build2/install/lib \
                 -lvtkzlib-6.3 \
                 -lboost_system-mt \
                 -lboost_thread-mt \
-                -lboost_filesystem-mt \
-                -ljsoncpp \
-                #-ljson-glib-1.0-0\
-                -lexiv2 \
-                -llensfun
+		-lboost_filesystem-mt \
+		-ljsoncpp \
+		#-ljson-glib-1.0-0\
+		-lexiv2 \
+		-llensfun

@@ -13,6 +13,7 @@
 #include "opencv2/hal/intrin.hpp"
 #include <opencv2/stereo.hpp>
 
+#include "utils.h"
 //using namespace cv;
 //using namespace std;
 
@@ -25,25 +26,35 @@ public:
     cv::Size board_sz;
     int board_n;
     double patternSize;
-    std::vector<std::vector<cv::Point3f> > object_points,object_points1,object_points2;
+
+    size_t fullResImage;
+    size_t leftAndRightImages;
+
+    std::vector<std::vector<cv::Point3f> > objectpoints;
     std::vector<std::vector<cv::Point2f> > imagePoints1, imagePoints2;
     std::vector<cv::Point2f> corners1, corners2;
     std::vector<cv::Point3f> obj;
-    cv::Mat img1, img2, gray1, gray2;
+
+    cv::Mat ChessHd,img1, img2, gray1, gray2, foundImages;
+
     cv::Mat R1, R2, P1, P2, Q;
     cv::Mat map1x, map1y, map2x, map2y;
     cv::Mat imgU1, imgU2;
+
     cv::Mat CM1;// = Mat(3, 3, CV_32FC1);
     cv::Mat CM2;// = Mat(3, 3, CV_32FC1);
     cv::Mat D1, D2;
     cv::Mat R, T, E, F;
-    cv::Size imgSize;
+    cv::Size imSize;
+    cv::Size cutSize;
+    float zoom_valueC,focalResC;
 
     StereoCalibrate();
-    void findAndDrawChessBoardCorners();
-    void findAndDrawChessBoardCorners(std::string images);
+    void findAndDrawChessBoardCorners(std::string filename);
     void CalibrateStereoCamera();
     void rectifyCamera();
     void initUndistort();
+    matPair undestort(matPair mats);
+    cv::Mat undestortZoom(cv::Mat image,std::string file);
 };
 #endif // STEREOCALIBRATE_H

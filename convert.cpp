@@ -26,7 +26,7 @@ PointCloud<PointXYZRGB>::Ptr Convert::matToCloud(Mat rgb,Mat disp,Mat Q,PointClo
         {
             uchar d = disp_ptr[j];
             if ( d == 0 ) continue; //Discard bad pixels
-            double pw = -1.0 * static_cast<double>(d) * Q32 + Q33;
+            double pw = 1.0 * static_cast<double>(d) * Q32 + Q33;
             px = static_cast<double>(j) + Q03 ;
             py = static_cast<double>(i) + Q13 ;
             pz = Q23 ;
@@ -60,7 +60,7 @@ PointCloud<PointXYZRGB>::Ptr Convert::matToCloud(Mat rgb,Mat disp,Mat Q,PointClo
     }
     Cloud->width = (int) Cloud->points.size();
     Cloud->height = 1;
-    Cloud->resize(Cloud->width*Cloud->height);
+    //Cloud->resize(Cloud->width*Cloud->height);
     //Cloud->width = disp.rows;
     //Cloud->height = disp.cols;
     return Cloud;
@@ -114,12 +114,12 @@ pcl::PolygonMesh Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr clo
     //std::vector<std::string> tex_files;
     //tex_files.push_back("c.jpg");
     //
-    //// initialize texture mesh
+    // initialize texture mesh
     //TextureMesh tex_mesh;
     //
     //tex_mesh.cloud = polygon.cloud;
     //
-    //// add the 1st mesh
+    // add the 1st mesh
     //tex_mesh.tex_polygons.push_back(polygon.polygons);
     pcl::search::KdTree<pcl::PointXYZRGBNormal>::Ptr tree2 (new pcl::search::KdTree<pcl::PointXYZRGBNormal>);
     tree2->setInputCloud (cloud_with_normals);
@@ -128,8 +128,8 @@ pcl::PolygonMesh Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr clo
     //possition.setConfidence(true);
     //possition.setSearchMethod(tree2);
     //possition.setDepth(8);
-    ////possition.setOutputPolygons(true);
-    ////std::cout << possition.getDepth();
+    //possition.setOutputPolygons(true);
+    //std::cout << possition.getDepth();
     //possition.setSolverDivide(7);
     //possition.reconstruct(polygon);
     //
@@ -142,7 +142,7 @@ pcl::PolygonMesh Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr clo
     pcl::GreedyProjectionTriangulation<pcl::PointXYZRGBNormal> triangulation;
 
      //Set the maximum distance between connected points (maximum edge length)
-    triangulation.setSearchRadius (5);
+    triangulation.setSearchRadius (2.0);
     // Set typical values for the parameters
     triangulation.setMu (2.5);
     triangulation.setMaximumNearestNeighbors (200);
