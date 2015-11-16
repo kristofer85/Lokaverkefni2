@@ -14,33 +14,17 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    dataholder.cpp \
     stereocalibrate.cpp \
-    stereoscopicimage.cpp \
     convert.cpp \
-    pclfilters.cpp \
     visualizer.cpp \
-    imageprocessing.cpp \
-    opencvutilities.cpp \
-    point_2d.cpp \
-    test.cpp \
-    reprojectimageto3d.cpp \
     utils.cpp \
     depthmap.cpp
 
 HEADERS  += mainwindow.h \
-    dataholder.h \
     stereocalibrate.h \
-    stereoscopicimage.h \
     defines.h \
     convert.h \
-    pclfilters.h \
     visualizer.h \
-    imageprocessing.h \
-    opencvutilities.h \
-    point_2d.h \
-    test.h \
-    reprojectimageto3d.h \
     utils.h \
     depthmap.h
 

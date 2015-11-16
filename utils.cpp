@@ -380,27 +380,4 @@ float getZoomValue(string imagePath)
 }
 
 
-void keystone(Mat src, Mat dst)
-{
-    cv::Point2f srcQuad[] =
-    {
-        cv::Point2f(0, 0), // src Top left
-        cv::Point2f(src.cols-1, 0), // src Top right
-        cv::Point2f(src.cols-1, src.rows-1), // src Bottom right
-        cv::Point2f(0, src.rows-1) // src Bottom left
-    };
 
-    cv::Point2f dstQuad[] =
-    {
-        cv::Point2f(0, 0), // src Top left
-        cv::Point2f(src.cols-1, 0), // src Top right
-        cv::Point2f(src.cols-1, src.rows-1), // src Bottom right
-        cv::Point2f(0, src.rows-1) // src Bottom left
-    };
-
-    Mat warp_mat = getPerspectiveTransform(srcQuad, dstQuad);
-
-    warpPerspective(src, dst, warp_mat, src.size(), INTER_LINEAR,BORDER_CONSTANT, cv::Scalar());
-
-    imwrite("key.jpg", dst);
-}

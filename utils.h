@@ -48,6 +48,7 @@ struct matPair
     void keystone(cv::Mat src, cv::Mat dst);
     //std::string cameraName;
     //std::string lens;
+    matPair undestort(matPair mats);
 
 
 

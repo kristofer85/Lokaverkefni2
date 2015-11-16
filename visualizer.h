@@ -1,6 +1,6 @@
 #ifndef VISUALIZER_H
 #define VISUALIZER_H
-
+#include <opencv2/core/core_c.h>
 #include "convert.h"
 #include <iostream>
 #include <string>
@@ -9,7 +9,7 @@
 #include <opencv2/core/core.hpp>
 #include <string>
 #include <iostream>
-//#include "pclwindow.h"
+#include <opencv/cv.h>
 #include <pcl/common/common_headers.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
@@ -38,14 +38,26 @@ class Visualizer
 {
 public:
     Visualizer();
+    pcl::PointCloud<pcl::PointNormal> loadToCload(cv::Mat color, cv::Mat depth);
     boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;    // viewer = displayPointCloudColor || displaypolygonMesh
     bool displayPoly;
     bool displayPoints;
 
-    boost::shared_ptr<pcl::visualization::PCLVisualizer> displayPointCloudColor (pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud);
-    boost::shared_ptr<pcl::visualization::PCLVisualizer> displayPolyMesh (pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud,pcl::PolygonMesh triangles);
-    boost::shared_ptr<pcl::visualization::PCLVisualizer> displayLocatorObject (pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud);
+    //boost::shared_ptr<pcl::visualization::PCLVisualizer> displayPointCloudColor (pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud);
+    boost::shared_ptr<pcl::visualization::PCLVisualizer> displayPointCloudColor (pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud,cv::Mat color);
+    boost::shared_ptr<pcl::visualization::PCLVisualizer> displayPolyMesh (pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud,pcl::PolygonMesh triangles, cv::Mat color);
     boost::shared_ptr<pcl::visualization::PCLVisualizer> displayPointCloudColorNormal (pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud, pcl::PointCloud<pcl::Normal>::ConstPtr normals1, pcl::PointCloud<pcl::Normal>::ConstPtr normals2);
+    void setRenderWindowWidth(cv::Mat image);
+    void setRenderWindowHeight(cv::Mat image);
+    int getRenderWindowWidth();
+    int getRenderWindowHeight();
+    cv::FileStorage fs;
+    std::string cameraCal;
+    cv::Mat Q;
+private:
+    int renderFrameWidth;
+    int renderFrameHeight;
+
 };
 
 #endif // VISUALIZER_H

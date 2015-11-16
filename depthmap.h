@@ -13,12 +13,15 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <limits.h>
+#include "opencv2/core/utility.hpp"
+#include "opencv2/imgproc.hpp"
 #include "opencv2/hal/intrin.hpp"
 #include <opencv2/stereo.hpp>
 #include "opencv2/hal/intrin.hpp"
 #include <opencv2/stereo.hpp>
 #include "utils.h"
-
+#include <limits.h>
+#include "opencv2/stereo.hpp"
 using namespace cv;
 using namespace std;
 using namespace cv::ximgproc;
@@ -32,6 +35,8 @@ public:
     void SGBMdisparityCalc(Mat l, Mat r);
     void BMdisparityCalc(Mat l, Mat r);
     void DisparityFilter(Mat l,Mat r);
+    void SGBMBinary(Mat l,Mat r);
+    Rect computeROI(Size2i src_sz, Ptr<StereoMatcher> matcher_instance);
 
 };
 #endif // DEPTHMAP_H

@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
-#include "dataholder.h"
 #include <limits.h>
 #include "opencv2/hal/intrin.hpp"
 #include <opencv2/stereo.hpp>
@@ -41,8 +40,8 @@ public:
     cv::Mat map1x, map1y, map2x, map2y;
     cv::Mat imgU1, imgU2;
 
-    cv::Mat CM1;// = Mat(3, 3, CV_32FC1);
-    cv::Mat CM2;// = Mat(3, 3, CV_32FC1);
+    cv::Mat CM1;
+    cv::Mat CM2;
     cv::Mat D1, D2;
     cv::Mat R, T, E, F;
     cv::Size imSize;
@@ -53,8 +52,6 @@ public:
     void findAndDrawChessBoardCorners(std::string filename);
     void CalibrateStereoCamera();
     void rectifyCamera();
-    void initUndistort();
-    matPair undestort(matPair mats);
-    cv::Mat undestortZoom(cv::Mat image,std::string file);
+
 };
 #endif // STEREOCALIBRATE_H

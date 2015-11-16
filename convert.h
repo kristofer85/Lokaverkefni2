@@ -4,13 +4,17 @@
 #include <opencv2/core.hpp>
 #include <opencv2/core/core.hpp>
 #include <string>
+#include <pcl/surface/marching_cubes.h>
 #include <iostream>
 #include <pcl/surface/poisson.h>
 #include <pcl/surface/boost.h>
 #include <pcl/features/integral_image_normal.h>
 #include <pcl/TextureMesh.h>
+#include <pcl/surface/mls.h>
+#include <boost/make_shared.hpp>
 #include <pcl/surface/texture_mapping.h>
 //#include "pclwindow.h"
+#include <pcl/io/obj_io.h>
 #include "visualizer.h"
 #include <pcl/common/common_headers.h>
 #include <pcl/io/pcd_io.h>
@@ -30,7 +34,6 @@
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/extract_indices.h>
-#include "dataholder.h"
 #include "stereocalibrate.h"
 #include <QApplication>
 #include <opencv/cv.h>
@@ -40,7 +43,6 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include "stereoscopicimage.h"
 #include "convert.h"
 //#include "pclwindow.h"
 #include <pcl/common/common_headers.h>
@@ -61,17 +63,21 @@
 #include "visualizer.h"
 #include <pcl/surface/mls.h>
 #include <pcl/stereo/disparity_map_converter.h>
+#include <pcl/surface/marching_cubes_hoppe.h>
+#include <pcl/surface/marching_cubes_rbf.h>
+
 class Convert
 {
 public:
     Convert();
-
+    //pcl::PolygonMesh possitionMesh(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud);
+    pcl::PointCloud<pcl::PointNormal> smoothNormals(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr matToCloud(cv::Mat rgb,cv::Mat disp,cv::Mat Q,pcl::PointCloud<pcl::PointXYZRGB>::Ptr Cloud);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr SOR_filter(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
     pcl::PolygonMesh triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr curveNormals(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
     pcl::PointCloud<pcl::PointXYZI>::Ptr disparityToPointCloud(std::string disparity);
-
+    pcl::PolygonMesh triangulate2(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
 
 };
 
