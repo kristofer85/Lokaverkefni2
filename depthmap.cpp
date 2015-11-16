@@ -8,7 +8,7 @@ DepthMap::DepthMap()
 
 void DepthMap::run()
 {
-    Mat stereo = imread("calib5_fixed.JPG",IMREAD_COLOR);
+    //Mat stereo = imread("calib5_fixed.JPG",IMREAD_COLOR);
     Mat stereo = imread("../Lokaverkefni2/chessboardImages/DSC_0071_sbs.jpg",IMREAD_COLOR);
     imSize = stereo.size();
     left = stereo(Range(0, imSize.height),Range(0, imSize.width/2)).clone();

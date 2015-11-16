@@ -1,10 +1,12 @@
 #include "utils.h"
 using namespace cv;
 using namespace std;
-//a helper class containing functions from kula code that i modified to work with our project
 
 
+//a helper class containing functions from kula code that I modified to work with our project
 
+
+//a function to split an image
 matPair splitImage(cv::Mat fullImage)
 {
     float midper = 0.05;
@@ -26,6 +28,8 @@ matPair splitImage(cv::Mat fullImage)
     return temp;
 }
 
+
+//a functin that reads focalResolution from the metadata saved in the image
 double getFocalResolution(string imagePath)
 {
     Exiv2::Image::AutoPtr image = Exiv2::ImageFactory::open(imagePath);
