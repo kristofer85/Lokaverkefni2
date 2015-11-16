@@ -5,15 +5,25 @@ using namespace std;
 
 
 
-void splitImage(cv::Mat fullImage,cv::Mat leftImg,cv::Mat rightImg)
+matPair splitImage(cv::Mat fullImage)
 {
-    float midper = 0.1;
+    float midper = 0.05;
     Size imSize = fullImage.size();
     int midArea = imSize.width * midper;
 
-    leftImg = fullImage(Range(0, imSize.height),Range(0, imSize.width/2 + midArea)).clone();
+    //Mat leftImg = fullImage(Range(0, imSize.height),Range(0, imSize.width/2 + midArea)).clone();
 
-    rightImg = fullImage(Range(0, imSize.height),Range(imSize.width/2 - midArea, imSize.width)).clone();
+    //Mat rightImg = fullImage(Range(0, imSize.height),Range(imSize.width/2 - midArea, imSize.width)).clone();
+    matPair temp;
+    temp.left = fullImage(Range(0, imSize.height),Range(0, imSize.width/2 - midArea)).clone();
+    temp.right = fullImage(Range(0, imSize.height),Range(imSize.width/2 + midArea, imSize.width)).clone();
+    /*
+    namedWindow("left",WINDOW_NORMAL| WINDOW_KEEPRATIO);
+    namedWindow("right",WINDOW_NORMAL| WINDOW_KEEPRATIO);
+    imshow("left",temp.left);
+    imshow("right",temp.right);
+    */
+    return temp;
 }
 
 double getFocalResolution(string imagePath)
@@ -56,6 +66,24 @@ void tangent_distortion_correction(Mat src_mat, Mat * dst_mat, float left, float
         remap( src_mat, *dst_mat, map_x, map_y, CV_INTER_LINEAR, BORDER_CONSTANT, Scalar(0,0, 0) );
 
 }
+
+void shift_image(Mat src_mat, Mat * dst_mat, float up, float left)
+{
+        Mat map_x, map_y;
+        map_x.create( src_mat.size(), CV_32FC1 );
+        map_y.create( src_mat.size(), CV_32FC1 );
+        for( int i = 0; i < src_mat.cols; i++ )
+        {
+                for( int j = 0; j < src_mat.rows; j++ )
+                {
+                        map_x.at<float>(j,i) = i-left;
+                        map_y.at<float>(j,i) = j-up;
+                }
+        }
+        remap( src_mat, *dst_mat, map_x, map_y, CV_INTER_LINEAR, BORDER_CONSTANT, Scalar(0,0, 0) );
+
+}
+
 
 
 int findSideBox(const Mat &image, double maxStdev,int numberOfLines, float maxSizeRatio, int maxColorDiff, double grayScaleSize, char
@@ -277,6 +305,7 @@ bool getDistCoeffs(Mat &distCoeffs, float zoom, string filename)
                qDebug()<<"getDistortionParameters returned false";
                return false;
        }
+       //Found Coeffs k1: 0.00722227 , k2: -0.0200405 , k3: 0
        distCoeffs.at<double>(0,0) = k1;
        distCoeffs.at<double>(1,0) = k2;
        distCoeffs.at<double>(4,0) = k3;
@@ -364,8 +393,10 @@ float getZoomValue(string imagePath)
                         for (Exiv2::ExifData::const_iterator i = exifData.begin(); i != end; ++i) {
                                 if(i->groupName() == "Photo" && i->tagName() == "FocalLength")
                                 {
-                                        qDebug()<<"Success";
-                                        zoom = i->value().toFloat(0);
+
+                                        zoom = i->value().toFloat();
+                                        qDebug()<<"Success" ;
+                                        cout <<"Success focal length = "<< i->value() << endl;
                                 }
                         }
                 }
@@ -403,4 +434,107 @@ void keystone(Mat src, Mat dst)
     warpPerspective(src, dst, warp_mat, src.size(), INTER_LINEAR,BORDER_CONSTANT, cv::Scalar());
 
     imwrite("key.jpg", dst);
+}
+
+Ptr<StereoMatcher> createRightMatcher2(Ptr<StereoMatcher> matcher_left)
+{
+    int min_disp = matcher_left->getMinDisparity();
+    int num_disp = matcher_left->getNumDisparities();
+    int wsize    = matcher_left->getBlockSize();
+
+    if(Ptr<StereoSGBM> sgbm = matcher_left.dynamicCast<StereoSGBM>())
+    {
+        Ptr<StereoSGBM> right_sgbm = StereoSGBM::create(sgbm->getMinDisparity()+1,num_disp,wsize);
+        qDebug()<<"min dif = "<< right_sgbm->getMinDisparity();
+        right_sgbm->setUniquenessRatio(sgbm->getUniquenessRatio());
+        right_sgbm->setP1(sgbm->getP1());
+        right_sgbm->setP2(sgbm->getP2());
+        right_sgbm->setMode(sgbm->getMode());
+        right_sgbm->setPreFilterCap(sgbm->getPreFilterCap());
+        right_sgbm->setDisp12MaxDiff(sgbm->getDisp12MaxDiff());
+        right_sgbm->setSpeckleWindowSize(sgbm->getSpeckleWindowSize());
+        right_sgbm->setSpeckleRange(sgbm->getSpeckleRange());
+        return right_sgbm;
+    }
+    else
+    {
+        CV_Error(Error::StsBadArg, "createRightMatcher supports only StereoSGBM");
+        return Ptr<StereoMatcher>();
+    }
+}
+
+void proccess(std::string imagepath)
+{
+    Mat fullImg;
+}
+
+
+Mat limit_precision_mat(Mat M, int precision)
+{
+
+    if(M.rows == 1)
+    {
+        for(int x = 0 ; x< M.rows; x++)
+        {
+
+            M.at<double>(x) = limit_precision(M.at<double>(x),precision);
+        }
+    }
+    else
+    {
+        for(int i = 0 ; i < M.rows; i++)
+        {
+            for(int x = 0 ; x< M.cols; x++)
+            {
+                double test = M.at<double>(i,x) ;
+                int pre = precision;
+
+                M.at<double>(i,x) = limit_precision(test,pre);
+            }
+        }
+    }
+    return M;
+}
+
+Mat limit_precision_matF(Mat M, int precision)
+{
+
+    if(M.rows == 1)
+    {
+        for(int x = 0 ; x< M.rows; x++)
+        {
+
+            M.at<float>(x) = limit_precision2(M.at<float>(x),precision);
+        }
+    }
+    else
+    {
+        for(int i = 0 ; i < M.rows; i++)
+        {
+            for(int x = 0 ; x< M.cols; x++)
+            {
+                float test = M.at<float>(i,x) ;
+                int pre = precision;
+
+                test = (float)limit_precision2(test,pre);
+                cout << "test = " << test << endl;
+                M.at<float>(i,x) = test;
+            }
+        }
+    }
+    return M;
+}
+
+double limit_precision(double val, int precision)
+{
+    double temp = (double) floor(((double)val * pow(10, precision) + 0.5)) / pow(10, precision);
+    cout << val << " floored = "<< temp << endl;
+    return temp;
+}
+
+float limit_precision2(float val, int precision)
+{
+    float temp = floor((val * pow(10, precision) + 0.5)) / pow(10, precision);
+    cout << val << " floored = "<< temp << endl;
+    return temp;
 }

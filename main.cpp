@@ -50,12 +50,20 @@ using namespace cv;
 using namespace std;
 int main(int argc, char *argv[])
 {
+
     StereoCalibrate stereoCalibrate;
     stereoCalibrate.findAndDrawChessBoardCorners("Y.xml");
+    stereoCalibrate.findAndDrawChessBoardCorners("../lokaverkefni2/Y.xml");
     stereoCalibrate.CalibrateStereoCamera();
     stereoCalibrate.rectifyCamera();
     DepthMap depthMap;
     depthMap.run();
+    //stereoCalibrate.rectifyCamera();
+    stereoCalibrate.initUndistort();
+
+    //DepthMap depthMap;
+    //depthMap.run();
+/*
     Convert utilities;
     Visualizer visualizer;
     DataHolder dataHolder;
@@ -70,6 +78,8 @@ int main(int argc, char *argv[])
     string file = "stereoCalibration.yml";  // moved files to debug & release folder "relative path"
     FileStorage fs = FileStorage(file, FileStorage::READ);
     fs["Q"] >> Q;                                            //Load Matrix Q
+    fs["Q"] >> Q;
+*/                                   //Load Matrix Q
     //ReprojectImageTo3d rProj3d;
     //Mat d = imread("d.jpg",CV_LOAD_IMAGE_GRAYSCALE);
     //Mat outDisp;
@@ -77,42 +87,12 @@ int main(int argc, char *argv[])
     //string f = "testReproject.txt";
     //rProj3d.save(outDisp,f);
 
-    Mat img_rgb = imread("c.jpg", CV_LOAD_IMAGE_COLOR);              // moved files to debug & release folder "relative path"
-    Mat img_disparity = imread("d2.jpg", CV_LOAD_IMAGE_GRAYSCALE);    // moved files to debug & release folder "relative path"
-
-    /*point cloud 2 xyzrgb, filers,triangulate*
-     *  point cloud from rgb image, depth     *
-     *  image & an empty point cloud of       *
-     *  pointXYZRGB.                          *
-     *  Point cloud filters applied           *
-     *****************************************/
-    //ImageProcessing j;
-    //j.selectContinuousPixel(0,0,img_disparity);
-
-    mainCloud = utilities.matToCloud(img_rgb,img_disparity,Q,mainCloud);
-    //cloud_filtered = utilities.SOR_filter(mainCloud);
-
-    //
-    triangles = utilities.triangulate(mainCloud);
-    //normal = utilities.curveNormals(mainCloud);
 
 
-    if(visualizer.displayPoly == false && visualizer.displayPoints == true)
-        visualizer.viewer = visualizer.displayPointCloudColor(mainCloud);      // view point cloud
-    else if(visualizer.displayPoly == true && visualizer.displayPoints == false)
-        visualizer.viewer = visualizer.displayPolyMesh(mainCloud,triangles); // view polyMesh
-    else
-        visualizer.viewer = visualizer.displayLocatorObject(mainCloud);
 
-    /***********Main render loop**************
-     *  Loop untils pcl viewer is turned off *
-    ******************************************/
 
-    while ( !visualizer.viewer->wasStopped())
-    {
-      visualizer.viewer->spinOnce(100);
-      visualizer.viewer->saveScreenshot("screenshot.png");
-      boost::this_thread::sleep (boost::posix_time::microseconds (100000));
-    }
+
+
+
     return 0;
 }

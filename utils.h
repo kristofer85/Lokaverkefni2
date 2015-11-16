@@ -11,9 +11,11 @@
 #include "json/json.h"
 #include "json/value.h"
 #include <QDebug>
+#include <vector>
+#include <cmath>
 
 #include "exiv2/exiv2.hpp"
-
+#include <vector>
 //#include "lensfun.h"
 #include "lensfun/lensfun.h"
 #include <locale.h>
@@ -29,9 +31,14 @@ struct matPair
    }
 };
 
+double limit_precision(double val, int precision);
+float limit_precision2(float val, int precision);
+
+cv::Mat limit_precision_mat(cv::Mat M, int precision);
+cv::Mat limit_precision_matF(cv::Mat M, int precision);
 
     //matPair splitImage(cv::Mat fullImage);
-    void splitImage(cv::Mat fullImage,cv::Mat leftImg,cv::Mat rightImg);
+    matPair splitImage(cv::Mat fullImage);
     //this only works for nikon D90 to do implement lensfun
     //to do implement lensfun and exiv2
     bool getDistCoeffs(cv::Mat &distCoeffs, float zoom, std::string filename);
@@ -46,6 +53,9 @@ struct matPair
     Exiv2::Image::AutoPtr unicodeExiv2Open(QString srcPath, QString *linkPath);
     float getZoomValue(std::string imagePath);
     void keystone(cv::Mat src, cv::Mat dst);
+    cv::Ptr<cv::StereoMatcher> createRightMatcher2(cv::Ptr<cv::StereoMatcher> matcher_left);
+    void shift_image(cv::Mat src_mat, cv::Mat * dst_mat, float left, float right);
+    void proccess(std::string imagepath);
     //std::string cameraName;
     //std::string lens;
 
