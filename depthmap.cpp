@@ -30,7 +30,7 @@ void DepthMap::run()
     //imSize = stereo.size();
     //left = stereo(Range(0, imSize.height),Range(0, imSize.width/2)).clone();
     //right = stereo(Range(0, imSize.height),Range(imSize.width/2, imSize.width)).clone();
-    //
+
     //resize(left ,left ,Size(),0.5,0.5);
     //resize(right,right,Size(),0.5,0.5);
     //cvtColor(left, g1, CV_BGR2GRAY);
@@ -42,15 +42,17 @@ void DepthMap::run()
     //imwrite("rightGray.png", g2);
     left = imread(leftImage,IMREAD_COLOR);
     right = imread(rightImage,IMREAD_COLOR);
-    resize(left ,left ,Size(),0.5,0.5);
-    resize(right,right,Size(),0.5,0.5);
+    resize(left ,left ,Size(),0.25,0.25);
+    resize(right,right,Size(),0.25,0.25);
     imwrite(leftImage,left);
     imwrite(rightImage,right);
     cvtColor(left, g1, CV_BGR2GRAY);
     cvtColor(right, g2, CV_BGR2GRAY);
+    //threshold(g1,g1,100,255,CV_THRESH_BINARY);
+    //threshold(g2,g2,120,255,CV_THRESH_BINARY);
+   imwrite("leftGray.png",g1);
+   imwrite("rightGray.png",g2);
 
-   // imwrite("tunaLeft.png",left);
-   // imwrite("tunaRight.png",right);
 
     //cvtColor(left, g1, CV_BGR2GRAY);
     //cvtColor(right, g2, CV_BGR2GRAY);
@@ -162,7 +164,7 @@ void DepthMap::SGBMdisparityCalc(Mat g1,Mat g2)
     sgbm->setUniquenessRatio(10);
     sgbm->setMode(StereoSGBM::MODE_SGBM);
     sgbm->setMinDisparity(-32);
-    sgbm->setNumDisparities(48);
+    sgbm->setNumDisparities(64);
     sgbm->setP1(8*g1.channels()*sgbmWinSize*sgbmWinSize);
     sgbm->setP2(32*g2.channels()*sgbmWinSize*sgbmWinSize);
     sgbm->setPreFilterCap(12);

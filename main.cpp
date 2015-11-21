@@ -55,11 +55,11 @@ int main(int argc, char *argv[])
     ////stereoCalibrate.rectifyCamera();
     //stereoCalibrate.initUndistort();
     DepthMap depthMap;
-    //depthMap.run();
+    depthMap.run();
     Convert utilities;
     Visualizer visualizer;
-    loadImage load;
-    load.loadImagesForDepthMap();
+    //loadImage load;
+    //load.loadImagesForDepthMap();
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr mainCloud (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::PolygonMesh triangles;
