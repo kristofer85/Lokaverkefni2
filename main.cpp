@@ -37,58 +37,148 @@
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/calib3d/calib3d.hpp"
 #include <pcl/io/pcd_io.h>
-
+#include <pcl/filters/sampling_surface_normal.h>
+#include "imageprossessing.h"
+#include "harrisdetector.h"
+#include "selectcomponents.h"
+#include "utils.h"
+#include "loadimage.h"
 using namespace cv;
 using namespace std;
+
 int main(int argc, char *argv[])
 {
 
     //StereoCalibrate stereoCalibrate;
-    //stereoCalibrate.findAndDrawChessBoardCorners("Y.xml");
-    //stereoCalibrate.CalibrateStereoCamera();
-    //stereoCalibrate.rectifyCamera();
-    //DepthMap depthMap;
+    ////stereoCalibrate.findAndDrawChessBoardCorners("Y.xml");
+    ////stereoCalibrate.CalibrateStereoCamera();
+    ////stereoCalibrate.rectifyCamera();
+    //stereoCalibrate.initUndistort();
+    DepthMap depthMap;
     //depthMap.run();
     Convert utilities;
     Visualizer visualizer;
+    loadImage load;
+    load.loadImagesForDepthMap();
 
-    // PCL variables & other temp location*****
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr mainCloud (new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::PointCloud<pcl::PointNormal>::Ptr pointNormal (new pcl::PointCloud<pcl::PointNormal>);
-    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
-    //pcl::PointCloud<pcl::PointXYZRGB>::Ptr normal (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::PolygonMesh triangles;
-    //dataHolder.fs1.open("stereoCalibration.yml", FileStorage::READ);
-    Mat Q;                                     //Load Matrix Q
+    Mat Q;
     string cameraCal = "stereoCalibration.yml";
     FileStorage fs = FileStorage(cameraCal, FileStorage::READ);
     fs["Q"] >> Q;
-    Mat color = imread("im0.png", CV_LOAD_IMAGE_COLOR);
-    Mat disparity = imread("disp8SGBM.png", CV_LOAD_IMAGE_GRAYSCALE);
+    Mat color = imread(depthMap.leftImage, CV_LOAD_IMAGE_COLOR);
+    Mat disparity = imread(depthMap.disparityImage, CV_LOAD_IMAGE_GRAYSCALE);
+    //******************************************************
 
-    /*point cloud 2 xyzrgb, filers,triangulate*
-     *  point cloud from rgb image, depth     *
-     *  image & an empty point cloud of       *
-     *  pointXYZRGB.                          *
-     *  Point cloud filters applied           *
-     *****************************************/
+
+
+
+    //img = splitt(img);
+
+    //imwrite("tyt.png",img);
+//    Mat image = img.clone();
+//    cvtColor(image,image,CV_RGB2GRAY);
+//    medianBlur(image,image,3);
+//    threshold(image,image,1,255,CV_THRESH_BINARY_INV);
+//     imwrite("ty.png",image);
+//    vector<vector<Point> > contours;
+//    Mat contourOutput = image.clone();
+//    vector<Vec4i> hierarchy;
+//    int largest_area=0;
+//    findContours( image, contours, hierarchy, CV_RETR_LIST , CV_CHAIN_APPROX_SIMPLE,Point(-1,-1));
+//    Rect bounding_rect;
+//    Mat src,dst;
+//    int largest_contour_index=0;
+//    for( int i = 0; i< contours.size(); i++ ) // iterate through each contour.
+//          {
+//           int a=contourArea(contours[i],false);  //  Find the area of contour
+//           if(a > 200)
+//  {
+//               largest_area=a;
+//               largest_contour_index=i;                //Store the index of largest contour
+//               bounding_rect=boundingRect(contours[i]); // Find the bounding rectangle for biggest contour
+//
+//              rectangle(image, bounding_rect,  Scalar(255,0,0),10, 8,0);
+//                   cout << a << "  area     " << i << " counter     " << bounding_rect.x << " x     " << bounding_rect.y  << "y     "<< bounding_rect.width << " with     " << bounding_rect.height<< "height     "<< endl;
+//           }
+//          }
+//     src = img(Rect(0,0,1606,2848)).clone();
+//imwrite("yubu.png",src);
+//    Mat regions(image.size(), CV_8UC1);
+//    dst = image.clone();
+     // Draw the largest contour using previously stored index.
+    //drawContours( image, contours,largest_contour_index, Scalar(255,255,255), 5,8,hierarchy);
+
+
+
+
+
+//
+//    Mat src = imread("FindContour.png",IMREAD_COLOR);
+//    ImageProssessing imgPro;
+//    disparity = imgPro.cannyEdges(color,2,5,100,3,3);
+//    vector<int> borders;
+//    Mat contour = src = imread("test.png",IMREAD_COLOR);
+//    contour = imgPro.FindingContour(src);
+//    contour = imgPro.FindingLargestContour(src);
+//
+//    HarrisDetector harris;
+//    Mat srcGray;
+//
+//
+// threshold(harris.cornerStrength,cornerHarris(color,harris.cornerStrength,3,3,0.01),threshold,255,THRESH_BINARY);
+////Create Harris detector instance
+//    srcGray.create(color.size(),color.type());
+//    // Compute Harris values
+//    harris.detect(color);
+//    // Detect Harris corners
+//    std::vector<cv::Point> pts;
+//    harris.getCorners(pts,0.01);
+//    // Draw Harris corners
+//    harris.drawOnImage(color,pts);
+//    //std::vector<cv::Point2f> corners;
+//    //cv::goodFeaturesToTrack(color, corners, 500, 0.01, 10);
+//    Mat cornerStrength;
+//    Mat harrisCorner;
+//    //threshold(cornerStrength, harrisCorners, 0.00001, 255, THRESH_BINARY);
+//    imwrite("h1.png",harrisCorner);
+//    cornerHarris(color, cornerStrength, 2, 3, 0.01);
+//    imwrite("h2.png",cornerStrength);
+//   // threshold( InputArray _src,OutputArray _dst, double thresh, double maxval, int type );
+//   // adaptiveThreshold( InputArray_src, OutputArray _dst, double maxValue,int method, int type, int blockSize, double delta );
+//
+//
+//    cornerHarris(color,srcGray,3,3,0.01,0);
+//    imwrite("s.png",color);
+//
+//
+//    src = imread("k.jpg",IMREAD_COLOR);
+//    if (!src.data)
+//        return -1;
+//
+//    Mat dst;
+//    imgPro.autocrop(src, dst);
+//
+//    imwrite("src.png", src);
+//    imwrite("dst.png", dst);
+//    cout << dst.size() << dst.cols << dst.rows << endl;
+
+    //******************************************************
     utilities.matToCloud(color,disparity,Q,mainCloud);
-
-    mainCloud = utilities.SOR_filter(mainCloud);
-
-    utilities.smoothNormals(mainCloud);
-    //mainCloud.reset();
-    //pcl::PCLPointCloud2 cloud_blob;
-    //pcl::io::loadPCDFile ("SmoothNormals.pcd", cloud_blob);
-    //fromPCLPointCloud2 (cloud_blob, *mainCloud);
-    triangles = utilities.triangulate(mainCloud);
-    //normal = utilities.curveNormals(mainCloud);
-
-
     if(visualizer.displayPoly == false && visualizer.displayPoints == true)
-        visualizer.viewer = visualizer.displayPointCloudColor(mainCloud,color);      // view point cloud
+    {
+        //mainCloud = utilities.SOR_filter(mainCloud);
+        utilities.smoothNormals(mainCloud);
+        visualizer.viewer = visualizer.displayPointCloudColor(mainCloud,color); // view point cloud
+    }
+
     else if(visualizer.displayPoly == true && visualizer.displayPoints == false)
-        visualizer.viewer = visualizer.displayPolyMesh(mainCloud,triangles,color); // view polyMesh
+    {
+        triangles = utilities.triangulate(mainCloud);
+        //triangles = utilities.possitionMesh(mainCloud);
+         visualizer.viewer = visualizer.displayPolyMesh(mainCloud,triangles,color); // view polyMesh
+    }
 
     /***********Main render loop**************
      *  Loop untils pcl viewer is turned off *

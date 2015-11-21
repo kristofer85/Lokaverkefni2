@@ -2,7 +2,9 @@
 #include "defines.h"
 DepthMap::DepthMap()
 {
-
+    leftImage = "leftImage.png";
+    rightImage = "rightImage.png";
+    disparityImage = "dispImage.png";
 
 }
 Rect DepthMap::computeROI(Size2i src_sz, Ptr<StereoMatcher> matcher_instance)
@@ -38,23 +40,27 @@ void DepthMap::run()
     //
     //imwrite("leftGray.png", g1);
     //imwrite("rightGray.png", g2);
-    left = imread("im0.png",IMREAD_COLOR);
-    right = imread("im1.png",IMREAD_COLOR);
+    left = imread(leftImage,IMREAD_COLOR);
+    right = imread(rightImage,IMREAD_COLOR);
+    resize(left ,left ,Size(),0.5,0.5);
+    resize(right,right,Size(),0.5,0.5);
+    imwrite(leftImage,left);
+    imwrite(rightImage,right);
     cvtColor(left, g1, CV_BGR2GRAY);
     cvtColor(right, g2, CV_BGR2GRAY);
+
    // imwrite("tunaLeft.png",left);
    // imwrite("tunaRight.png",right);
-    //resize(left ,left ,Size(),0.3,0.3);
-    //resize(right,right,Size(),0.3,0.3);
+
     //cvtColor(left, g1, CV_BGR2GRAY);
     //cvtColor(right, g2, CV_BGR2GRAY);
-    //imwrite("leftDepthMap.png",left);
-    //imwrite("rightDepthMap.png",right);
+    //imwrite(leftImage,left);
+    //imwrite(rightImage,right);
     //SGBMBinary(g1,g2);
     SGBMdisparityCalc(g1,g2);
     //BMdisparityCalc(g1,g2);
 
-    DisparityFilter(left,right);
+    //DisparityFilter(left,right);
 }
 
 void DepthMap::DisparityFilter(Mat l,Mat r)
@@ -75,17 +81,16 @@ void DepthMap::DisparityFilter(Mat l,Mat r)
     left_for_matcher  = l.clone();
     right_for_matcher = r.clone();
     int wsize = 3;
-    Ptr<StereoSGBM> left_matcher  = StereoSGBM::create(0,64,wsize);
+    Ptr<StereoSGBM> left_matcher  = StereoSGBM::create(0,48,wsize);
     left_matcher->setP1(24*wsize*wsize);
     left_matcher->setP2(96*wsize*wsize);
     left_matcher->setPreFilterCap(5);
-    left_matcher->setMinDisparity(0);
+    left_matcher->setMinDisparity(-32);
     left_matcher->setBlockSize(3);
-    left_matcher->setDisp12MaxDiff(-1);
-    left_matcher->setMode(StereoSGBM::MODE_SGBM);
+    left_matcher->setDisp12MaxDiff(12);
+    left_matcher->setMode(StereoSGBM::MODE_SGBM_3WAY);
     wls_filter = createDisparityWLSFilter(left_matcher);
     Ptr<StereoMatcher> right_matcher = createRightMatcher(left_matcher);
-
     matching_time = (double)getTickCount();
     left_matcher-> compute(left_for_matcher, right_for_matcher,left_disp);
     right_matcher->compute(right_for_matcher,left_for_matcher, right_disp);
@@ -152,23 +157,24 @@ void DepthMap::SGBMdisparityCalc(Mat g1,Mat g2)
 {
     cv::Ptr<cv::StereoSGBM> sgbm = cv::StereoSGBM::create(0,16,7);
     int sgbmWinSize = 3;
-    sgbm->setBlockSize(5);
-    sgbm->setDisp12MaxDiff(-1);
-    sgbm->setUniquenessRatio(15);
+    sgbm->setBlockSize(3);
+    sgbm->setDisp12MaxDiff(2);
+    sgbm->setUniquenessRatio(10);
     sgbm->setMode(StereoSGBM::MODE_SGBM);
-    sgbm->setMinDisparity(0);
-    sgbm->setNumDisparities(128);
+    sgbm->setMinDisparity(-32);
+    sgbm->setNumDisparities(48);
     sgbm->setP1(8*g1.channels()*sgbmWinSize*sgbmWinSize);
     sgbm->setP2(32*g2.channels()*sgbmWinSize*sgbmWinSize);
-    sgbm->setPreFilterCap(32);
-    sgbm->setSpeckleRange(1);
+    sgbm->setPreFilterCap(12);
+    sgbm->setSpeckleRange(2);
     sgbm->setSpeckleWindowSize(200);
     sgbm->compute(g1, g2, disp);
-    sgbm->save("j.txt");
+    //sgbm->save("j.txt");
     normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);
     imwrite("dispSGBM.png", disp);
-    imwrite("disp8SGBM.png", disp8);
-     bilateralFilter(g1,g2,0,6.0,6.0);
+    imwrite(disparityImage, disp8);
+
+     //bilateralFilter(g1,g2,0,6.0,6.0);
     medianBlur(disp,dispf,5);
     medianBlur(disp8,dispf8,5);
 

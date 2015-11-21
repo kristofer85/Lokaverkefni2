@@ -18,7 +18,8 @@ SOURCES += main.cpp\
     convert.cpp \
     visualizer.cpp \
     utils.cpp \
-    depthmap.cpp
+    depthmap.cpp \
+    loadimage.cpp
 
 HEADERS  += mainwindow.h \
     stereocalibrate.h \
@@ -26,7 +27,8 @@ HEADERS  += mainwindow.h \
     convert.h \
     visualizer.h \
     utils.h \
-    depthmap.h
+    depthmap.h \
+    loadimage.h
 
 FORMS    += mainwindow.ui
 

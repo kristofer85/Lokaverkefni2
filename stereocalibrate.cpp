@@ -81,7 +81,7 @@ void StereoCalibrate::findAndDrawChessBoardCorners(string filename)
 
         if (found1)
         {
-            cornerSubPix(gray1, corners1, Size(11, 11), Size(-1, -1), TermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.1));
+            cornerSubPix(gray1, corners1, Size(11, 11), Size(-1, -1), TermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.01));
             drawChessboardCorners(gray1, board_sz, corners1, found1);
         }
 
@@ -105,6 +105,7 @@ void StereoCalibrate::findAndDrawChessBoardCorners(string filename)
             imwrite(ChessboardImageList+(string)*it,gray2);
         }
     }
+
 }
 
 void StereoCalibrate::CalibrateStereoCamera()
@@ -116,7 +117,7 @@ void StereoCalibrate::CalibrateStereoCamera()
                                  CM1, D1, CM2, D2,
                                  cutSize,
                                  R, T, E, F,
-                                 CALIB_FIX_ASPECT_RATIO ,
+                                 CV_CALIB_FIX_ASPECT_RATIO,
                                  cvTermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS, 100, 1e-5));
     cout << "done with RMS error=" << rms << endl;
     stereoCalibrationStored << "CM1" << CM1;
@@ -154,6 +155,17 @@ void StereoCalibrate::CalibrateStereoCamera()
     }
 
     cout << "avg err = " << avgErr/(nframes*70) << endl;
+    nframes = (int)objectpoints.size();
+    vector<Point2f> allpoints[2];
+    for(int i = 0; i < nframes; i++ )
+    {
+        copy(imagePoints1[i].begin(), imagePoints1[i].end(), back_inserter(allpoints[0]));
+        copy(imagePoints2[i].begin(), imagePoints2[i].end(), back_inserter(allpoints[1]));
+    }
+    F = findFundamentalMat(allpoints[0], allpoints[1], FM_RANSAC, 3, 0.99);
+    stereoRectifyUncalibrated(allpoints[0], allpoints[1], F, cutSize, H1, H2, 3);
+    R1 = CM1.inv()*H1*CM1;
+    R2 = CM2.inv()*H2*CM2;
 }
 
 void StereoCalibrate::rectifyCamera()
@@ -167,7 +179,7 @@ void StereoCalibrate::rectifyCamera()
     stereoCalibrationStored["R"] >> R;
     stereoCalibrationStored["T"] >> T;
 
-    stereoRectify( CM1, D1, CM2, D2, img1.size(), R, T, R1, R2, P1, P2, Q, CALIB_FIX_ASPECT_RATIO );
+    stereoRectify( CM1, D1, CM2, D2, img1.size(), R, T, R1, R2, P1, P2, Q, CV_CALIB_FIX_ASPECT_RATIO );
 //*******************************
 // ToDo Write Data to DATA_HOLDER
 //*******************************
@@ -181,4 +193,28 @@ void StereoCalibrate::rectifyCamera()
     stereoCalibrationStored.release();
 }
 
+void StereoCalibrate::initUndistort(Mat& l, Mat& r)
+{
+    distortionCutSize = l.size();
+    //R1 = imread("R1.png",IMREAD_UNCHANGED);
+    //R2 = imread("R2.png",IMREAD_UNCHANGED);
+    FileStorage stereoCalibrationStored = FileStorage("stereoCalibration.yml", FileStorage::READ);
+    stereoCalibrationStored["CM1"] >> CM1;
+    stereoCalibrationStored["D1"] >> D1;
+    stereoCalibrationStored["CM2"] >> CM2;
+    stereoCalibrationStored["D2"] >> D2;
+    stereoCalibrationStored.release();
+    FileStorage stereo = FileStorage("test.yml", FileStorage::READ);
+    stereo["R1"] >> R1;
+    stereo["R2"] >> R2;
+    initUndistortRectifyMap(CM1, D1, R1, P1, distortionCutSize, CV_16SC2, map1x, map1y);
+    initUndistortRectifyMap(CM2, D2, R2, P2, distortionCutSize, CV_16SC2, map2x, map2y);
 
+    remap(l, imgU1, map1x, map1y, INTER_LINEAR, BORDER_CONSTANT, Scalar());
+    remap(r, imgU2, map2x, map2y, INTER_LINEAR, BORDER_CONSTANT, Scalar());
+
+    imwrite("leftRemap.jpg",imgU1);
+    imwrite("rightRemap.jpg",imgU2);
+    l = imgU1.clone();
+    r = imgU2.clone();
+}

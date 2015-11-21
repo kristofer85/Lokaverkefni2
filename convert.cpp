@@ -64,16 +64,16 @@ PointCloud<PointXYZRGB>::Ptr Convert::matToCloud(Mat rgb,Mat disp,Mat Q,PointClo
     return Cloud;
 }
 
-pcl::PointCloud<pcl::PointNormal> Convert::smoothNormals(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+pcl::PointCloud<pcl::PointXYZRGBNormal> Convert::smoothNormals(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
 {
     // Create a KD-Tree
     pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
 
     // Output has the PointNormal type in order to store the normals calculated by MLS
-    pcl::PointCloud<pcl::PointNormal> mls_points;
+    pcl::PointCloud<pcl::PointXYZRGBNormal> mls_points;
 
     // Init object (second point type is for the normals, even if unused)
-    pcl::MovingLeastSquares<pcl::PointXYZRGB, pcl::PointNormal> mls;
+    pcl::MovingLeastSquares<pcl::PointXYZRGB, pcl::PointXYZRGBNormal> mls;
 
     mls.setComputeNormals (true);
 
@@ -130,6 +130,7 @@ pcl::PolygonMesh Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr clo
     tree->setInputCloud (cloud);
     n.setInputCloud (cloud);
     n.setSearchMethod (tree);
+
     //n.setKSearch (200);
     n.setRadiusSearch(0.09);
     n.compute (*normals);
@@ -147,13 +148,13 @@ pcl::PolygonMesh Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr clo
     pcl::GreedyProjectionTriangulation<pcl::PointXYZRGBNormal> triangulation;
     pcl::PolygonMesh polygon;
     // Set the maximum distance between connected points (maximum edge length)
-    triangulation.setSearchRadius (5.0);
+    triangulation.setSearchRadius (3.0);
     // Set typical values for the parameters
     triangulation.setMu (2.5);
     triangulation.setMaximumNearestNeighbors (200);
     triangulation.setMaximumSurfaceAngle(M_PI/4); // 45 degrees
-    triangulation.setMinimumAngle(M_PI/18); // 10 degrees
-    triangulation.setMaximumAngle(2*M_PI/3); // 120 degrees
+    triangulation.setMinimumAngle(0.0); // 10 degrees
+    triangulation.setMaximumAngle(120.0);
     triangulation.getConsistentVertexOrdering();
     triangulation.setNormalConsistency(true);
     // Get result
@@ -165,6 +166,7 @@ pcl::PolygonMesh Convert::triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr clo
     //std::vector<int> parts = gp3.getPartIDs();
     //std::vector<int> states = gp3.getPointStates();
     pcl::io::saveVTKFile("triangulate.vtk", polygon);
+
 
 
 
@@ -232,30 +234,39 @@ pcl::PolygonMesh Convert::triangulate2(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cl
     return polygon;
 }
 
-/*
-pcl::PolygonMesh Convert::possitionMesh(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud)
+
+pcl::PolygonMesh Convert::possitionMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
 {
+    pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> n;
+    pcl::PointCloud<pcl::Normal>::Ptr normals (new pcl::PointCloud<pcl::Normal>);
+    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
+    tree->setInputCloud (cloud);
+    n.setInputCloud (cloud);
+    n.setSearchMethod (tree);
+
+    //n.setKSearch (200);
+    n.setRadiusSearch(0.09);
+    n.compute (*normals);
+
+    // Concatenate the XYZRGB and normal fields*
+    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud_with_normals (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
+    pcl::concatenateFields (*cloud, *normals, *cloud_with_normals);
+    //* cloud_with_normals = cloud + normals
+
+    // Create search tree*
+    pcl::search::KdTree<pcl::PointXYZRGBNormal>::Ptr tree2 (new pcl::search::KdTree<pcl::PointXYZRGBNormal>);
+    tree2->setInputCloud (cloud_with_normals);
+
     pcl::PolygonMesh polygon;
-
-    for(int i = 0; i < polygon.polygons.size();i++)
-    {
-        pcl::PolygonMesh<pcl::Vertices>polygonFromVertices;
-    }
-    pcl::PointCloud<pcl::KdTree::PointXYZRGBNormal>tree2 (new pcl::PointCloud<pcl::KdTree::PointXYZRGBNormal>());
-
     pcl::Poisson<PointXYZRGBNormal> possition;
-    possition.setInputCloud(cloud);
-    possition.setConfidence(true);
-    possition.setSearchMethod(tree2);
-    possition.setDepth(8);
-    possition.setScale(2.0);
-    possition.setOutputPolygons(true);
-    possition.setManifold(true);
-    possition.setSolverDivide(8);
+    possition.setInputCloud(cloud_with_normals);
+
     possition.reconstruct(polygon);
-    possition.reconstruct(cloud_with_normals,polygonFromVertices);
+
+
 
 
     pcl::io::saveOBJFile("polyModel.obj",polygon);
+    return polygon;
 }
-*/
+

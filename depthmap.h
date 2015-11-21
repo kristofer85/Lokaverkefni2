@@ -29,6 +29,7 @@ class DepthMap
 {
 public:
     Mat left,right,g1,g2,disp,disp8,disp12,dispf,dispf8;
+    string leftImage,rightImage,disparityImage;
     Size imSize;
     DepthMap();
     void run();

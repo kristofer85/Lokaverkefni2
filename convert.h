@@ -71,13 +71,14 @@ class Convert
 public:
     Convert();
     //pcl::PolygonMesh possitionMesh(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud);
-    pcl::PointCloud<pcl::PointNormal> smoothNormals(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
+    pcl::PointCloud<pcl::PointXYZRGBNormal> smoothNormals(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr matToCloud(cv::Mat rgb,cv::Mat disp,cv::Mat Q,pcl::PointCloud<pcl::PointXYZRGB>::Ptr Cloud);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr SOR_filter(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
     pcl::PolygonMesh triangulate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr curveNormals(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
     pcl::PointCloud<pcl::PointXYZI>::Ptr disparityToPointCloud(std::string disparity);
     pcl::PolygonMesh triangulate2(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
+    pcl::PolygonMesh possitionMesh(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
 
 };
 

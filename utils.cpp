@@ -1,21 +1,47 @@
 #include "utils.h"
 using namespace cv;
 using namespace std;
-//a helper class containing functions from kula code that i modified to work with our project
 
 
+//a helper class containing functions from kula code that I modified to work with our project
 
-void splitImage(cv::Mat fullImage,cv::Mat leftImg,cv::Mat rightImg)
+matPair Proccess_image(string impath)
 {
-    float midper = 0.1;
-    Size imSize = fullImage.size();
-    int midArea = imSize.width * midper;
-
-    leftImg = fullImage(Range(0, imSize.height),Range(0, imSize.width/2 + midArea)).clone();
-
-    rightImg = fullImage(Range(0, imSize.height),Range(imSize.width/2 - midArea, imSize.width)).clone();
+    Mat orginalImage = imread(impath,IMREAD_COLOR);
+    //Mat zoomCorrected = undestortZoom(orginalImage,impath);
+    //orginalImage.release();
+    matPair lensCorrected;
+    //lensCorrected = splitImage(orginalImage);
+    //lensCorrected = undestort(lensCorrected);
+    return lensCorrected;
 }
 
+//a function to split an image
+matPair splitImage(matPair temp)
+{
+    float midper = 0.00;
+    Size imSize = temp.full.size();
+    //int midArea = imSize.width * midper;
+
+    //Mat leftImg = fullImage(Range(0, imSize.height),Range(0, imSize.width/2 + midArea)).clone();
+
+    //Mat rightImg = fullImage(Range(0, imSize.height),Range(imSize.width/2 - midArea, imSize.width)).clone();
+    ;
+    //temp.left = fullImage(Range(0, imSize.height),Range(0, imSize.width/2 - midArea)).clone();
+    //temp.right = fullImage(Range(0, imSize.height),Range(imSize.width/2 + midArea, imSize.width)).clone();
+    temp.left = temp.full(Range(0, imSize.height),Range(0, imSize.width/2)).clone();
+    temp.right = temp.full(Range(0, imSize.height),Range(imSize.width/2, imSize.width)).clone();
+    /*
+    namedWindow("left",WINDOW_NORMAL| WINDOW_KEEPRATIO);
+    namedWindow("right",WINDOW_NORMAL| WINDOW_KEEPRATIO);
+    imshow("left",temp.left);
+    imshow("right",temp.right);
+    */
+    return temp;
+}
+
+
+//a functin that reads focalResolution from the metadata saved in the image
 double getFocalResolution(string imagePath)
 {
     Exiv2::Image::AutoPtr image = Exiv2::ImageFactory::open(imagePath);
@@ -56,6 +82,24 @@ void tangent_distortion_correction(Mat src_mat, Mat * dst_mat, float left, float
         remap( src_mat, *dst_mat, map_x, map_y, CV_INTER_LINEAR, BORDER_CONSTANT, Scalar(0,0, 0) );
 
 }
+
+void shift_image(Mat src_mat, Mat * dst_mat, float up, float left)
+{
+        Mat map_x, map_y;
+        map_x.create( src_mat.size(), CV_32FC1 );
+        map_y.create( src_mat.size(), CV_32FC1 );
+        for( int i = 0; i < src_mat.cols; i++ )
+        {
+                for( int j = 0; j < src_mat.rows; j++ )
+                {
+                        map_x.at<float>(j,i) = i-left;
+                        map_y.at<float>(j,i) = j-up;
+                }
+        }
+        remap( src_mat, *dst_mat, map_x, map_y, CV_INTER_LINEAR, BORDER_CONSTANT, Scalar(0,0, 0) );
+
+}
+
 
 
 int findSideBox(const Mat &image, double maxStdev,int numberOfLines, float maxSizeRatio, int maxColorDiff, double grayScaleSize, char
@@ -277,6 +321,7 @@ bool getDistCoeffs(Mat &distCoeffs, float zoom, string filename)
                qDebug()<<"getDistortionParameters returned false";
                return false;
        }
+       //Found Coeffs k1: 0.00722227 , k2: -0.0200405 , k3: 0
        distCoeffs.at<double>(0,0) = k1;
        distCoeffs.at<double>(1,0) = k2;
        distCoeffs.at<double>(4,0) = k3;
@@ -364,8 +409,10 @@ float getZoomValue(string imagePath)
                         for (Exiv2::ExifData::const_iterator i = exifData.begin(); i != end; ++i) {
                                 if(i->groupName() == "Photo" && i->tagName() == "FocalLength")
                                 {
-                                        qDebug()<<"Success";
-                                        zoom = i->value().toFloat(0);
+
+                                        zoom = i->value().toFloat();
+                                        qDebug()<<"Success" ;
+                                        cout <<"Success focal length = "<< i->value() << endl;
                                 }
                         }
                 }
@@ -380,4 +427,252 @@ float getZoomValue(string imagePath)
 }
 
 
+void keystone(Mat src, Mat dst)
+{
+    cv::Point2f srcQuad[] =
+    {
+        cv::Point2f(0, 0), // src Top left
+        cv::Point2f(src.cols-1, 0), // src Top right
+        cv::Point2f(src.cols-1, src.rows-1), // src Bottom right
+        cv::Point2f(0, src.rows-1) // src Bottom left
+    };
+
+    cv::Point2f dstQuad[] =
+    {
+        cv::Point2f(0, 0), // src Top left
+        cv::Point2f(src.cols-1, 0), // src Top right
+        cv::Point2f(src.cols-1, src.rows-1), // src Bottom right
+        cv::Point2f(0, src.rows-1) // src Bottom left
+    };
+
+    Mat warp_mat = getPerspectiveTransform(srcQuad, dstQuad);
+
+    warpPerspective(src, dst, warp_mat, src.size(), INTER_LINEAR,BORDER_CONSTANT, cv::Scalar());
+
+    imwrite("key.jpg", dst);
+}
+
+Ptr<StereoMatcher> createRightMatcher2(Ptr<StereoMatcher> matcher_left)
+{
+    int min_disp = matcher_left->getMinDisparity();
+    int num_disp = matcher_left->getNumDisparities();
+    int wsize    = matcher_left->getBlockSize();
+
+    if(Ptr<StereoSGBM> sgbm = matcher_left.dynamicCast<StereoSGBM>())
+    {
+        Ptr<StereoSGBM> right_sgbm = StereoSGBM::create(sgbm->getMinDisparity()+1,num_disp,wsize);
+        qDebug()<<"min dif = "<< right_sgbm->getMinDisparity();
+        right_sgbm->setUniquenessRatio(sgbm->getUniquenessRatio());
+        right_sgbm->setP1(sgbm->getP1());
+        right_sgbm->setP2(sgbm->getP2());
+        right_sgbm->setMode(sgbm->getMode());
+        right_sgbm->setPreFilterCap(sgbm->getPreFilterCap());
+        right_sgbm->setDisp12MaxDiff(sgbm->getDisp12MaxDiff());
+        right_sgbm->setSpeckleWindowSize(sgbm->getSpeckleWindowSize());
+        right_sgbm->setSpeckleRange(sgbm->getSpeckleRange());
+        return right_sgbm;
+    }
+    else
+    {
+        CV_Error(Error::StsBadArg, "createRightMatcher supports only StereoSGBM");
+        return Ptr<StereoMatcher>();
+    }
+}
+
+void proccess(std::string imagepath)
+{
+    Mat fullImg;
+}
+
+
+Mat limit_precision_mat(Mat M, int precision)
+{
+
+    if(M.rows == 1)
+    {
+        for(int x = 0 ; x< M.rows; x++)
+        {
+
+            M.at<double>(x) = limit_precision(M.at<double>(x),precision);
+        }
+    }
+    else
+    {
+        for(int i = 0 ; i < M.rows; i++)
+        {
+            for(int x = 0 ; x< M.cols; x++)
+            {
+                double test = M.at<double>(i,x) ;
+                int pre = precision;
+
+                M.at<double>(i,x) = limit_precision(test,pre);
+            }
+        }
+    }
+    return M;
+}
+
+Mat limit_precision_matF(Mat M, int precision)
+{
+
+    if(M.rows == 1)
+    {
+        for(int x = 0 ; x< M.rows; x++)
+        {
+
+            M.at<float>(x) = limit_precision2(M.at<float>(x),precision);
+        }
+    }
+    else
+    {
+        for(int i = 0 ; i < M.rows; i++)
+        {
+            for(int x = 0 ; x< M.cols; x++)
+            {
+                float test = M.at<float>(i,x) ;
+                int pre = precision;
+
+                test = (float)limit_precision2(test,pre);
+                cout << "test = " << test << endl;
+                M.at<float>(i,x) = test;
+            }
+        }
+    }
+    return M;
+}
+
+double limit_precision(double val, int precision)
+{
+    double temp = (double) floor(((double)val * pow(10, precision) + 0.5)) / pow(10, precision);
+    cout << val << " floored = "<< temp << endl;
+    return temp;
+}
+
+float limit_precision2(float val, int precision)
+{
+    float temp = floor((val * pow(10, precision) + 0.5)) / pow(10, precision);
+    cout << val << " floored = "<< temp << endl;
+    return temp;
+}
+
+matPair undestort(matPair pair)
+{
+
+    Mat left_tangent= Mat::zeros(pair.left.size().height, pair.left.size().width, pair.left.type());
+    Mat right_tangent = Mat::zeros(pair.right.size().height, pair.right.size().width, pair.right.type());
+    tangent_distortion_correction(pair.left, &left_tangent, 1.0, 1.0-DISTORTION); // magic number found by mesuring images taken by deeper
+    tangent_distortion_correction(pair.right, &right_tangent, 1.0-DISTORTION, 1.0);//really just an educated guess.
+
+    // for debuging
+    //namedWindow("orginal",WINDOW_NORMAL);
+    //namedWindow("tangentdestort",WINDOW_NORMAL);
+    //imshow("orginal",left);
+    //imshow("tangentdestort",left_tangent);
+    //
+    pair.left = left_tangent;
+    pair.right = right_tangent;
+    //img1 = pair.left;
+    //img2 = pair.right;
+    //waitKey(0);
+
+    return pair;
+}
+
+Mat undestortZoom(cv::Mat& image,string file_name)
+{
+    qDebug()<<"Undistort via zoom info";
+    Mat distCoeffs;
+    float zoom_value = getZoomValue(file_name);
+    if(!getDistCoeffs(distCoeffs, zoom_value, file_name))
+    {
+            qDebug()<<"Failed to get distortion coeffs";
+            return image;
+    }
+    double focalRes = getFocalResolution(file_name);
+
+    if (focalRes*zoom_value < 1)
+    {
+            qDebug()<<"No focal resolution found using a standin value";
+            focalRes = 4615.05;
+    }
+    Mat cameraMatrix = getCameraMatrix(zoom_value*focalRes, image.cols, image.rows);
+
+    Mat undistorted, map1, map2;
+
+    qDebug()<<"Image size is"<<image.size().width<<"x"<<image.size().height;
+    qDebug()<<"cols x rows"<<image.cols<<image.rows;
+
+
+
+    initUndistortRectifyMap(cameraMatrix,distCoeffs, Mat(),
+                            cameraMatrix,
+                            image.size(), CV_16SC2, map1, map2);
+    remap(image, undistorted, map1, map2, INTER_LINEAR);
+    //char buffer[256];
+    //sprintf(buffer, "Zoom %4.2f", zoom_value);
+    //putText(undistorted,buffer ,Point(100,200),FONT_HERSHEY_SIMPLEX,5.0, Scalar(255.0,0.0,0.0), 5);
+    image = undistorted;
+    return image;
+}
+
+Mat mySplitImage(Mat& src,string name,Point& s)
+{
+    Mat clone;
+    cvtColor(src,clone,CV_RGB2GRAY);
+    medianBlur(clone,clone,3);
+    threshold(clone,clone,1,255,CV_THRESH_BINARY_INV);
+    Rect bounding_rect;
+    vector<vector<Point> > contours;
+    vector<Vec4i> hierarchy;
+
+    int largest_area=0;
+    findContours( clone, contours, hierarchy, CV_RETR_LIST , CV_CHAIN_APPROX_SIMPLE,Point(-1,-1));
+
+
+    int largest_contour_index=0;
+    if(s.x != 0)
+        clone = src(Rect(0,s.x,clone.cols,clone.rows - s.x));
+    if(s.y != 0)
+        clone = src(Rect(0,0,clone.cols,clone.rows - s.y));
+    for( int i = 0; i< contours.size(); i++ ) // iterate through each contour.
+    {
+        int a=contourArea(contours[i],false);  //  Find the area of contour
+        if(a > 200)
+        {
+            largest_area=a;
+            largest_contour_index=i;                //Store the index of largest contour
+            bounding_rect=boundingRect(contours[i]); // Find the bounding rectangle for biggest contour
+             if(bounding_rect.width < bounding_rect.height)// left or right
+             {
+                  bounding_rect.height = clone.rows;
+                 if(bounding_rect.x != 0) // right
+                     clone = src(Rect(0,0,clone.cols - bounding_rect.width,clone.rows));
+                  else // left
+                     clone = src(Rect(bounding_rect.width,0,clone.cols - bounding_rect.width,clone.rows));
+             }
+             else // top or bottom
+             {
+                 bounding_rect.width = clone.cols;
+                  if(bounding_rect.x == 0) // top
+                  {
+                     clone = src(Rect(0,bounding_rect.height,clone.cols,clone.rows - bounding_rect.height));
+                     s.x = bounding_rect.height;
+                  }
+                  else // bottom
+                  {
+                      clone = src(Rect(0,0,clone.cols,clone.rows - bounding_rect.height));
+                      s.y = bounding_rect.height;
+                  }
+             }
+             cout << a << "  area     " << i << " counter     " << bounding_rect.x << " x     " << bounding_rect.y  << "y     "<< bounding_rect.width << " with     " << bounding_rect.height<< "height     "<< endl;
+        }
+    }
+    imwrite(name,clone);
+
+    src = clone(Rect(0,0,clone.cols,clone.rows));
+    clone.setTo(1);
+
+    //src = clone(Rect(0,0,clone.cols,clone.rows));
+    return src;
+}
 

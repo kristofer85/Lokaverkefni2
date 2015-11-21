@@ -13,8 +13,6 @@
 #include <opencv2/stereo.hpp>
 
 #include "utils.h"
-//using namespace cv;
-//using namespace std;
 
 class StereoCalibrate
 {
@@ -37,6 +35,7 @@ public:
     cv::Mat ChessHd,img1, img2, gray1, gray2, foundImages;
 
     cv::Mat R1, R2, P1, P2, Q;
+    cv::Mat H1, H2;
     cv::Mat map1x, map1y, map2x, map2y;
     cv::Mat imgU1, imgU2;
 
@@ -44,14 +43,14 @@ public:
     cv::Mat CM2;
     cv::Mat D1, D2;
     cv::Mat R, T, E, F;
-    cv::Size imSize;
-    cv::Size cutSize;
+    cv::Size imSize,cutSize,distortionSize,distortionCutSize;
     float zoom_valueC,focalResC;
 
     StereoCalibrate();
     void findAndDrawChessBoardCorners(std::string filename);
     void CalibrateStereoCamera();
     void rectifyCamera();
+    void initUndistort(cv::Mat& l,cv::Mat& r);
 
 };
 #endif // STEREOCALIBRATE_H
