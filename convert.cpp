@@ -66,6 +66,33 @@ PointCloud<PointXYZRGB>::Ptr Convert::matToCloud(Mat rgb,Mat disp,Mat Q,PointClo
     return Cloud;
 }
 
+pcl::PointCloud<pcl::PointNormal> Convert::smoothNormals(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+{
+    // Create a KD-Tree
+    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
+
+    // Output has the PointNormal type in order to store the normals calculated by MLS
+    pcl::PointCloud<pcl::PointNormal> mls_points;
+
+    // Init object (second point type is for the normals, even if unused)
+    pcl::MovingLeastSquares<pcl::PointXYZRGB, pcl::PointNormal> mls;
+
+    mls.setComputeNormals (true);
+
+    // Set parameters
+    mls.setInputCloud(cloud);
+    mls.setPolynomialFit (true);
+    mls.setSearchMethod (tree);
+    mls.setSearchRadius (0.09);
+
+    // Reconstruct
+    mls.process (mls_points);
+    pcl::io::savePCDFile ("SmoothNormals.pcd", mls_points);
+
+    return (mls_points);
+}
+
+
 
 /*******************************************
  *  Our sparse outlier removal is based on *
@@ -81,6 +108,7 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr Convert::SOR_filter(pcl::PointCloud<pcl::
     sor.setMeanK (50);
     sor.setStddevMulThresh (1.0);
     sor.filter (*filter);
+    cloud->clear();
     return filter;
 
 }

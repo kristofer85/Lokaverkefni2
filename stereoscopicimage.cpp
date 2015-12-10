@@ -8,9 +8,6 @@
 #include <opencv2/core/cvdef.h>
 #include <opencv2/core/core_c.h>
 #include <opencv2/ccalib.hpp>
-#include "point_2d.h"
-#include "imageprocessing.h"
-#include "opencvutilities.h"
 #include <opencv/cv.h>
 #include <opencv2/core.hpp>
 #include <opencv2/core/core.hpp>
@@ -48,21 +45,20 @@ void StereoScopicImage::rectifyCamera()
     Q = Mat(4,4, CV_64F);
     setIdentity(Q);
     cout << "Q"<< Q << endl;
-    DataHolder dataHolder;
-    dataHolder.fs1.open("stereoCalibration.yml", FileStorage::READ);
-    dataHolder.fs1["CM1"] >> CM1;
-    dataHolder.fs1["D1"] >> D1;
-    dataHolder.fs1["CM2"] >> CM2;
-    dataHolder.fs1["D2"] >> D2;
-    dataHolder.fs1["R"] >> R;
-    dataHolder.fs1["T"] >> T;
+    FileStorage fs1 = FileStorage("stereoCalibration.yml", FileStorage::READ);
+    fs1["CM1"] >> CM1;
+    fs1["D1"] >> D1;
+    fs1["CM2"] >> CM2;
+    fs1["D2"] >> D2;
+    fs1["R"] >> R;
+    fs1["T"] >> T;
     stereoRectify( CM1, D1, CM2, D2, img1.size(), R, T, R1, R2, P1, P2, Q, CALIB_ZERO_DISPARITY );
-    dataHolder.fs1.open("stereoCalibration.yml", FileStorage::APPEND);
-    dataHolder.fs1 << "R1" << R1;
-    dataHolder.fs1 << "R2" << R2;
-    dataHolder.fs1 << "P1" << P1;
-    dataHolder.fs1 << "P2" << P2;
-    dataHolder.fs1 << "Q" << Q;
+    fs1.open("stereoCalibration.yml", FileStorage::APPEND);
+    fs1 << "R1" << R1;
+    fs1 << "R2" << R2;
+    fs1 << "P1" << P1;
+    fs1 << "P2" << P2;
+    fs1 << "Q" << Q;
 
 }
 

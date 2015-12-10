@@ -1,5 +1,6 @@
 #ifndef TEST_H
 #define TEST_H
+#ifndef Q_MOC_RUN
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_cloud.h>
 #include <pcl/features/normal_3d.h>
@@ -14,6 +15,7 @@
 #include <pcl/filters/statistical_outlier_removal.h>
 #include <pcl/surface/mls.h>
 #include <pcl/outofcore/visualization/camera.h>
+#endif
 #include "opencv2/core.hpp"
 #include "opencv2/calib3d.hpp"
 #include <opencv2/highgui.hpp>

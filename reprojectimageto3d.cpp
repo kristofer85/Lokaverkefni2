@@ -1,5 +1,6 @@
 #include "reprojectimageto3d.h"
-
+using namespace cv;
+using namespace std;
 ReprojectImageTo3d::ReprojectImageTo3d()
 {
 

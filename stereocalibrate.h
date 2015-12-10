@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
-#include "dataholder.h"
 #include <limits.h>
 #include "opencv2/hal/intrin.hpp"
 #include <opencv2/stereo.hpp>
@@ -50,11 +49,13 @@ public:
     float zoom_valueC,focalResC;
 
     StereoCalibrate();
+    void clean();
     void findAndDrawChessBoardCorners(std::string filename);
     void CalibrateStereoCamera();
     void rectifyCamera();
     void initUndistort();
-    matPair undestort(matPair mats);
-    cv::Mat undestortZoom(cv::Mat image,std::string file);
+    matPair initUndistort(matPair);
+    //matPair undestort(matPair mats);
+    //cv::Mat undestortZoom(cv::Mat image,std::string file);
 };
 #endif // STEREOCALIBRATE_H

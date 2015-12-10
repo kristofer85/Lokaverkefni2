@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
-#include "dataholder.h"
 
 #include <limits.h>
 #include "opencv2/hal/intrin.hpp"
@@ -16,7 +15,6 @@
 class StereoScopicImage
 {
 public:
-    DataHolder dataHolder;
     //cv::Ptr<cv::StereoSGBM> sgbm = cv::StereoSGBM::create(0,16,3);
     StereoScopicImage();
     void rectifyCamera();
